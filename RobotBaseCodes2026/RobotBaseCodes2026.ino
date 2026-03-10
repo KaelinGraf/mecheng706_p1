@@ -31,6 +31,7 @@
 #include <Servo.h>  //Need for Servo pulse output
 
 #include <Adafruit_BNO08x.h>  //Need for Gyroscope
+#include "mappings.h"
 
 //Gyroscope initialisation
 Adafruit_BNO08x bno08x(-1);
@@ -50,21 +51,12 @@ enum STATE {
   STOPPED
 };
 
-//Refer to Shield Pinouts.jpg for pin locations
 
 //Default motor control pins
 const byte left_front = 46;
 const byte left_rear = 47;
 const byte right_rear = 50;
 const byte right_front = 51;
-
-
-//Default ultrasonic ranging sensor pins, these pins are defined my the Shield
-const int TRIG_PIN = 48;
-const int ECHO_PIN = 49;
-
-// Anything over 400 cm (23200 us pulse) is "out of range". Hit:If you decrease to this the ranging sensor but the timeout is short, you may not need to read up to 4meters.
-const unsigned int MAX_DIST = 23200;
 
 Servo left_font_motor;   // create servo object to control Vex Motor Controller 29
 Servo left_rear_motor;   // create servo object to control Vex Motor Controller 29
