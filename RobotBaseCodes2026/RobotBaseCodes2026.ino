@@ -111,7 +111,6 @@ void setup(void) {
 
 void loop(void)  // main loop
 {
-  readBluetoothSerial();
   static STATE machine_state = INITIALISING;
   // Finite-state machine Code
   switch (machine_state) {
