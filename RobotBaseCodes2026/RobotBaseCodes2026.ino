@@ -1,18 +1,20 @@
 /*
   MechEng 706 Base Code
 
-  This code provides basic movement and sensor reading for the MechEng 706 Mecanum Wheel Robot Project
+  This code provides basic movement and sensor reading for the MechEng 706
+  Mecanum Wheel Robot Project
 
   Hardware:
     Arduino Mega2560 https://www.arduino.cc/en/Guide/ArduinoMega2560
     BNO085 https://www.adafruit.com/product/4754
     Ultrasonic Sensor - HC-SR04 https://www.sparkfun.com/products/13959
     Infrared Proximity Sensor - Sharp https://www.sparkfun.com/products/242
-    Infrared Proximity Sensor Short Range - Sharp https://www.sparkfun.com/products/12728
-    Servo - Generic (Sub-Micro Size) https://www.sparkfun.com/products/9065
-    Vex Motor Controller 29 https://www.vexrobotics.com/276-2193.html
-    Vex Motors https://www.vexrobotics.com/motors.html
-    Turnigy nano-tech 2200mah 2S https://hobbyking.com/en_us/turnigy-nano-tech-2200mah-2s-25-50c-lipo-pack.html
+    Infrared Proximity Sensor Short Range - Sharp
+  https://www.sparkfun.com/products/12728 Servo - Generic (Sub-Micro Size)
+  https://www.sparkfun.com/products/9065 Vex Motor Controller 29
+  https://www.vexrobotics.com/276-2193.html Vex Motors
+  https://www.vexrobotics.com/motors.html Turnigy nano-tech 2200mah 2S
+  https://hobbyking.com/en_us/turnigy-nano-tech-2200mah-2s-25-50c-lipo-pack.html
     HC 12 Module https://www.hc01.com/downloads/HC-12%20english%20datasheets.pdf
 
   Date: 11/11/2016
@@ -21,66 +23,64 @@
   Author: Trishit Ghatak
 */
 
-
 /*
         DONT CHANGE HEADERS
-   
+
 -----------------------------
 */
 
-#include <Servo.h>  //Need for Servo pulse output
-
 #include <Adafruit_BNO08x.h>  //Need for Gyroscope
+<<<<<<< HEAD
 #include "mappings.h"
+=======
+#include <Servo.h>            //Need for Servo pulse output
+>>>>>>> de6447fff64310bf6425fc168dcac50638e4daf7
 
-//Gyroscope initialisation
+// Gyroscope initialisation
 Adafruit_BNO08x bno08x(-1);
 sh2_SensorValue_t sensorValue;
 float rad = 0.0;
 
 // #define NO_READ_GYRO  //Uncomment if GYRO is not attached.
 
-#define NO_HC -SR04  //Uncomment if HC-SR04 ultrasonic ranging sensor is not attached.
+#define NO_HC \
+  -SR04  // Uncomment if HC-SR04 ultrasonic ranging sensor is not attached.
 
-//#define NO_BATTERY_V_OK //Uncomment if BATTERY_V_OK if you do not care about battery damage.
+// #define NO_BATTERY_V_OK //Uncomment if BATTERY_V_OK if you do not care about
+// battery damage.
 
-//State machine states
-enum STATE {
-  INITIALISING,
-  RUNNING,
-  STOPPED
-};
+// State machine states
+enum STATE { INITIALISING, RUNNING, STOPPED };
 
 
-//Default motor control pins
+
+// Default motor control pins
 const byte left_front = 46;
 const byte left_rear = 47;
 const byte right_rear = 50;
 const byte right_front = 51;
 
+
 Servo left_font_motor;   // create servo object to control Vex Motor Controller 29
 Servo left_rear_motor;   // create servo object to control Vex Motor Controller 29
 Servo right_rear_motor;  // create servo object to control Vex Motor Controller 29
 Servo right_font_motor;  // create servo object to control Vex Motor Controller 29
-Servo turret_motor;
 
+Servo turret_motor;
 
 int speed_val = 100;
 int speed_change;
 
-//Serial Pointer
-HardwareSerial *SerialCom;
+// Serial Pointer
+HardwareSerial* SerialCom;
 void delaySeconds(int TimedDelaySeconds);
 void flashLED(int LedNumber, int TimedDelay);
 void serialOutputMonitor(int32_t Value1, int32_t Value2, int32_t Value3);
 void serialOutputPlotter(int32_t Value1, int32_t Value2, int32_t Value3);
-void bluetoothSerialOutputMonitor(int32_t Value1, int32_t Value2, int32_t Value3);
+void bluetoothSerialOutputMonitor(int32_t Value1, int32_t Value2,
+                                  int32_t Value3);
 void serialOutput(int32_t Value1, int32_t Value2, int32_t Value3);
 void setupWireless();
-
-
-
-
 
 int pos = 0;
 void setup(void) {
@@ -91,49 +91,51 @@ void setup(void) {
   pinMode(TRIG_PIN, OUTPUT);
   digitalWrite(TRIG_PIN, LOW);
 
-  // Setup the Serial port and pointer, the pointer allows switching the debug info through the USB port(Serial) or Bluetooth port(Serial1) with ease.
+  // Setup the Serial port and pointer, the pointer allows switching the debug
+  // info through the USB port(Serial) or Bluetooth port(Serial1) with ease.
   SerialCom = &Serial;
   SerialCom->begin(115200);
   SerialCom->println("MECHENG706_Base_Code");
   delay(1000);
   SerialCom->println("Setup....");
 
-  delay(1000);  //settling time but no really needed
+  delay(1000);  // settling time but no really needed
 }
 
-void loop(void)  //main loop
+void loop(void)  // main loop
 {
   static STATE machine_state = INITIALISING;
-  //Finite-state machine Code
+  // Finite-state machine Code
   switch (machine_state) {
     case INITIALISING:
       machine_state = initialising();
       break;
-    case RUNNING:  //Lipo Battery Volage OK
+    case RUNNING:  // Lipo Battery Volage OK
       machine_state = running();
       break;
-    case STOPPED:  //Stop of Lipo Battery voltage is too low, to protect Battery
+    case STOPPED:  // Stop of Lipo Battery voltage is too low, to protect
+                   // Battery
       machine_state = stopped();
       break;
   };
 }
 
-void printBluetooth(){
-
-  serialOutput(analogRead(A4),  analogRead(A4),  analogRead(A4));
+void printBluetooth() {
+  serialOutput(analogRead(A4), analogRead(A4), analogRead(A4));
 }
 
 STATE initialising() {
-  //initialising
+  // initialising
   SerialCom->println("INITIALISING....");
-  delay(1000);  //One second delay to see the serial string "INITIALISING...."
+  delay(1000);  // One second delay to see the serial string "INITIALISING...."
   SerialCom->println("Enabling Motors...");
   enable_motors();
   setupWireless();
 
 #ifndef NO_READ_GYRO
   SerialCom->println("Enabling Gyroscope...");
-  if (!bno08x.begin_I2C() || !bno08x.enableReport(SH2_GYROSCOPE_UNCALIBRATED, 10000)) {
+  if (!bno08x.begin_I2C() ||
+      !bno08x.enableReport(SH2_GYROSCOPE_UNCALIBRATED, 10000)) {
     while (1) {
       SerialCom->println("IMU failed");
       delay(100);
@@ -146,13 +148,13 @@ STATE initialising() {
 }
 
 STATE running() {
-
   static unsigned long previous_millis;
 
   read_serial_command();
   fast_flash_double_LED_builtin();
 
-  if (millis() - previous_millis > 500) {  //Arduino style 500ms timed execution statement
+  if (millis() - previous_millis >
+      500) {  // Arduino style 500ms timed execution statement
     previous_millis = millis();
 
     SerialCom->println("RUNNING---------");
@@ -172,7 +174,6 @@ STATE running() {
     if (!is_battery_voltage_OK()) return STOPPED;
 #endif
 
-
     turret_motor.write(pos);
 
     if (pos == 0) {
@@ -185,7 +186,7 @@ STATE running() {
   return RUNNING;
 }
 
-//Stop of Lipo Battery voltage is too low, to protect Battery
+// Stop of Lipo Battery voltage is too low, to protect Battery
 STATE stopped() {
   static byte counter_lipo_voltage_ok;
   static unsigned long previous_millis;
@@ -193,18 +194,17 @@ STATE stopped() {
   disable_motors();
   slow_flash_LED_builtin();
 
-  if (millis() - previous_millis > 500) {  //print massage every 500ms
+  if (millis() - previous_millis > 500) {  // print massage every 500ms
     previous_millis = millis();
     SerialCom->println("STOPPED---------");
 
-
 #ifndef NO_BATTERY_V_OK
-    //500ms timed if statement to check lipo and output speed settings
+    // 500ms timed if statement to check lipo and output speed settings
     if (is_battery_voltage_OK()) {
       SerialCom->print("Lipo OK waiting of voltage Counter 10 < ");
       SerialCom->println(counter_lipo_voltage_ok);
       counter_lipo_voltage_ok++;
-      if (counter_lipo_voltage_ok > 10) {  //Making sure lipo voltage is stable
+      if (counter_lipo_voltage_ok > 10) {  // Making sure lipo voltage is stable
         counter_lipo_voltage_ok = 0;
         enable_motors();
         SerialCom->println("Lipo OK returning to RUN STATE");
@@ -244,8 +244,7 @@ void slow_flash_LED_builtin() {
 
 void speed_change_smooth() {
   speed_val += speed_change;
-  if (speed_val > 1000)
-    speed_val = 1000;
+  if (speed_val > 1000) speed_val = 1000;
   speed_change = 0;
 }
 
@@ -256,9 +255,11 @@ boolean is_battery_voltage_OK() {
 
   int Lipo_level_cal;
   int raw_lipo;
-  //the voltage of a LiPo cell depends on its chemistry and varies from about 3.5V (discharged) = 717(3.5V Min) https://oscarliang.com/lipo-battery-guide/
-  //to about 4.20-4.25V (fully charged) = 860(4.2V Max)
-  //Lipo Cell voltage should never go below 3V, So 3.5V is a safety factor.
+  // the voltage of a LiPo cell depends on its chemistry and varies from
+  // about 3.5V (discharged) = 717(3.5V Min)
+  // https://oscarliang.com/lipo-battery-guide/ to about 4.20-4.25V (fully
+  // charged) = 860(4.2V Max) Lipo Cell voltage should never go below 3V,
+  // So 3.5V is a safety factor.
   raw_lipo = analogRead(A0);
   Lipo_level_cal = (raw_lipo - 717);
   Lipo_level_cal = Lipo_level_cal * 100;
@@ -276,11 +277,13 @@ boolean is_battery_voltage_OK() {
     return true;
   } else {
     if (Lipo_level_cal < 0)
-      SerialCom->println("Lipo is Disconnected or Power Switch is turned OFF!!!");
+      SerialCom->println(
+          "Lipo is Disconnected or Power Switch is turned OFF!!!");
     else if (Lipo_level_cal > 160)
       SerialCom->println("!Lipo is Overchanged!!!");
     else {
-      SerialCom->println("Lipo voltage too LOW, any lower and the lipo with be damaged");
+      SerialCom->println(
+          "Lipo voltage too LOW, any lower and the lipo with be damaged");
       SerialCom->print("Please Re-charge Lipo:");
       SerialCom->print(Lipo_level_cal);
       SerialCom->println("%");
@@ -337,7 +340,7 @@ void HC_SR04_range() {
 
   // Calculate distance in centimeters and inches. The constants
   // are found in the datasheet, and calculated from the assumed speed
-  //of sound in air at sea level (~340 m/s).
+  // of sound in air at sea level (~340 m/s).
   cm = pulse_width / 58.0;
   inches = pulse_width / 148.0;
 
@@ -365,7 +368,9 @@ void GYRO_reading() {
 
   if (bno08x.getSensorEvent(&sensorValue)) {
     if (sensorValue.sensorId == SH2_GYROSCOPE_UNCALIBRATED) {
-      float gyroZ = sensorValue.un.gyroscope.z; // Current Measured Angular Velocity Around The Z Axis
+      float gyroZ =
+          sensorValue.un.gyroscope
+              .z;  // Current Measured Angular Velocity Around The Z Axis
       SerialCom->print("Gyroscope I2C: ");
       SerialCom->println(gyroZ);
     }
@@ -374,7 +379,7 @@ void GYRO_reading() {
 }
 #endif
 
-//Serial command pasing
+// Serial command pasing
 void read_serial_command() {
   if (SerialCom->available()) {
     char val = SerialCom->read();
@@ -382,39 +387,39 @@ void read_serial_command() {
     SerialCom->print(speed_val);
     SerialCom->print(" ms ");
 
-    //Perform an action depending on the command
+    // Perform an action depending on the command
     switch (val) {
-      case 'w':  //Move Forward
+      case 'w':  // Move Forward
       case 'W':
         forward();
         SerialCom->println("Forward");
         break;
-      case 's':  //Move Backwards
+      case 's':  // Move Backwards
       case 'S':
         reverse();
         SerialCom->println("Backwards");
         break;
-      case 'q':  //Turn Left
+      case 'q':  // Turn Left
       case 'Q':
         strafe_left();
         SerialCom->println("Strafe Left");
         break;
-      case 'e':  //Turn Right
+      case 'e':  // Turn Right
       case 'E':
         strafe_right();
         SerialCom->println("Strafe Right");
         break;
-      case 'a':  //Turn Right
+      case 'a':  // Turn Right
       case 'A':
         ccw();
         SerialCom->println("ccw");
         break;
-      case 'd':  //Turn Right
+      case 'd':  // Turn Right
       case 'D':
         cw();
         SerialCom->println("cw");
         break;
-      case '-':  //Turn Right
+      case '-':  // Turn Right
       case '_':
         speed_change = -100;
         SerialCom->println("-100");
@@ -433,13 +438,19 @@ void read_serial_command() {
 }
 
 //----------------------Motor moments------------------------
-//The Vex Motor Controller 29 use Servo Control signals to determine speed and direction, with 0 degrees meaning neutral https://en.wikipedia.org/wiki/Servo_control
+// The Vex Motor Controller 29 use Servo Control signals to determine speed and
+// direction, with 0 degrees meaning neutral
+// https://en.wikipedia.org/wiki/Servo_control
 
 void disable_motors() {
-  left_font_motor.detach();   // detach the servo on pin left_front to turn Vex Motor Controller 29 Off
-  left_rear_motor.detach();   // detach the servo on pin left_rear to turn Vex Motor Controller 29 Off
-  right_rear_motor.detach();  // detach the servo on pin right_rear to turn Vex Motor Controller 29 Off
-  right_font_motor.detach();  // detach the servo on pin right_front to turn Vex Motor Controller 29 Off
+  left_font_motor.detach();   // detach the servo on pin left_front to turn Vex
+                              // Motor Controller 29 Off
+  left_rear_motor.detach();   // detach the servo on pin left_rear to turn Vex
+                              // Motor Controller 29 Off
+  right_rear_motor.detach();  // detach the servo on pin right_rear to turn Vex
+                              // Motor Controller 29 Off
+  right_font_motor.detach();  // detach the servo on pin right_front to turn Vex
+                              // Motor Controller 29 Off
 
   pinMode(left_front, INPUT);
   pinMode(left_rear, INPUT);
@@ -448,12 +459,17 @@ void disable_motors() {
 }
 
 void enable_motors() {
-  left_font_motor.attach(left_front);    // attaches the servo on pin left_front to turn Vex Motor Controller 29 On
-  left_rear_motor.attach(left_rear);     // attaches the servo on pin left_rear to turn Vex Motor Controller 29 On
-  right_rear_motor.attach(right_rear);   // attaches the servo on pin right_rear to turn Vex Motor Controller 29 On
-  right_font_motor.attach(right_front);  // attaches the servo on pin right_front to turn Vex Motor Controller 29 On
+  left_font_motor.attach(left_front);  // attaches the servo on pin left_front
+                                       // to turn Vex Motor Controller 29 On
+  left_rear_motor.attach(left_rear);   // attaches the servo on pin left_rear to
+                                       // turn Vex Motor Controller 29 On
+  right_rear_motor.attach(right_rear);  // attaches the servo on pin right_rear
+                                        // to turn Vex Motor Controller 29 On
+  right_font_motor.attach(
+      right_front);  // attaches the servo on pin right_front to turn Vex Motor
+                     // Controller 29 On
 }
-void stop()  //Stop
+void stop()  // Stop
 {
   left_font_motor.writeMicroseconds(1500);
   left_rear_motor.writeMicroseconds(1500);
