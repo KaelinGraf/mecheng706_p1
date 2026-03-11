@@ -1,3 +1,4 @@
+#include "Arduino.h"
 #include"sensors.h"
 
 
@@ -14,6 +15,60 @@ uint8_t Sensor::getReadPin(){
 Sensor::Sensor(uint8_t read_pin){
   _read_pin = read_pin;
 }
+
+
+float ShortRangeIR::readSensor(){
+  if ((millis() - _last_millis)<=SHORTRANGE_LATENCY){ //in the event of "double read" 
+    return _prev_error;
+  }
+  _prev_error = applyCalibration(readVoltage(_read_pin))
+  _last_millis = millis()
+  return _prev_error
+}
+
+float ShortRangeIR::applyCalibration(float adc_voltage){
+  //Impliments the calibration profile shown on the datasheet (only for the linear region)
+  //Outside of the linear region should be treated as out-of-bounds (Returns -1)
+  //Datasheet maps V = (1/[L + 0.42])m + c, between voltage ranges of 0.3V - 3V
+  const float c = 0.1097f;
+  const float m = 11.33f;
+  float x = 0.0;
+  if (adc_voltage < _min_voltage){
+    return -1.0;
+  }
+  else if (adc_voltage > _max_voltage){
+    return -1.0;
+  }
+  x = (adc_voltage - c) / m;
+  return (1/x) - 0.42;
+}
+
+float LongRangeIR::readSensor(){
+  if ((millis() - _last_millis)<=LONGRANGE_LATENCY){ //in the event of "double read" 
+    return _prev_error;
+  }
+  _prev_error = applyCalibration(readVoltage(_read_pin))
+  _last_millis = millis()
+  return _prev_error
+}
+
+float LongRangeIR::applyCalibration(float adc_voltage){
+  //Impliments the calibration profile shown on the datasheet (only for the linear region)
+  //Outside of the linear region should be treated as out-of-bounds (Returns -1)
+  //Datasheet maps V = (1/[L])m + c, thus L = 1/V between voltage ranges of 0.3V - 3V
+  const float m = -1.0f;
+  const float c = -1.0f;
+  const float x = 0.0;
+  if (adc_voltage < _min_voltage){
+    return -1.0;
+  }
+  else if (adc_voltage > _max_voltage){
+    return -1.0;
+  }
+  return -1.0; //replace with logic when done 
+  
+}
+
 
 Ultrasonic::Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, uint8_t max_dist, HardwareSerial* SerialCom) 
 : Sensor(uint8_t(255)),  _echo_pin(echo_pin), _trigger_pin(trigger_pin), _max_dist(max_dist),_serial_com(SerialCom){
