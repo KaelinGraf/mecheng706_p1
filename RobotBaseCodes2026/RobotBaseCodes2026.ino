@@ -30,11 +30,9 @@
 */
 
 #include <Adafruit_BNO08x.h>  //Need for Gyroscope
-<<<<<<< HEAD
 #include "mappings.h"
-=======
 #include <Servo.h>            //Need for Servo pulse output
->>>>>>> de6447fff64310bf6425fc168dcac50638e4daf7
+#include "pid.h"
 
 // Gyroscope initialisation
 Adafruit_BNO08x bno08x(-1);
