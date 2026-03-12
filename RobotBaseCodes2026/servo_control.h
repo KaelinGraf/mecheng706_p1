@@ -19,14 +19,18 @@ class Motor{
   protected:
     Servo _motor;
     const int* _control_multipliers; //array of i.e [1,-1,1] for front right motor (multipliers for control effort Vx Vy Vtheta)
+    uint8_t _motor_pin;
+    bool _is_attatched = false;
 
 
   public:
-    Motor(const int* control_multipliers,uint8_t motor_pin):_control_multipliers(control_multipliers){
-      _motor.attach(motor_pin);
+    Motor(const int* control_multipliers,uint8_t motor_pin):_control_multipliers(control_multipliers),_motor_pin(motor_pin){
     }
     Motor(uint8_t motor_pin){
-      _motor.attach(motor_pin);
+    }
+    void attachMotor(){
+      _motor.attach(_motor_pin);
+      _is_attatched = true;
     }
     ~Motor(){
       _motor.detach();

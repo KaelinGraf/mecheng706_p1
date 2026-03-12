@@ -135,19 +135,16 @@ float Ultrasonic::readSensor() {
 };
 
 
-float Gyroscope::readSensor(){
+float Gyroscope::readSensor(bool apply_filter=false){
   if (_bno08x->wasReset()) {
-    _bno08x->enableReport(SH2_GYROSCOPE_UNCALIBRATED);
+    _bno08x->enableReport(SH2_GYROSCOPE_CALIBRATED);
   }
 
   if (_bno08x->getSensorEvent(_sensorValue)) {
-    if (_sensorValue->sensorId == SH2_GYROSCOPE_UNCALIBRATED) {
-      float gyroZ =
-          _sensorValue->un.gyroscope
-              .z;  // Current Measured Angular Velocity Around The Z Axis
-      _serial_com->print("Gyroscope I2C: ");
-      _serial_com->println(gyroZ);
-      return gyroZ;
+    if (_sensorValue->sensorId == SH2_GYROSCOPE_CALIBRATED) {
+      float gyroZ =_sensorValue->un.gyroscope.z;  // Current Measured Angular Velocity Around The Z Axis
+      _prev_measurements->push(gyroZ);
+      return (apply_filter)? _prev_measurements->average():gyroZ;
 
     }
   }

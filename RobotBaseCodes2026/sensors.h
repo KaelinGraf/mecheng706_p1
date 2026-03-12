@@ -3,6 +3,7 @@
 #include "mappings.h"
 #include <Arduino.h>
 #include <Adafruit_BNO08x.h>  //Need for Gyroscope
+#include "utils.h"
 
 //Class methods for reading and calibrating different sensor variants
 
@@ -91,21 +92,31 @@ class Gyroscope: public Sensor{
     float _last_omega = 0.0;
     uint32_t _prev_micros = 0.0;
     HardwareSerial* _serial_com;
+    RingBuffer<float,4>* _prev_measurements;
 
     
   public:
     Gyroscope(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom):Sensor(uint8_t(0)),_bno08x(bno08x),_sensorValue(sensorValue),_serial_com(SerialCom){
       _serial_com->println("Enabling Gyroscope...");
       if (!_bno08x->begin_I2C() ||
-          !_bno08x->enableReport(SH2_GYROSCOPE_UNCALIBRATED, 10000)) {
+          !_bno08x->enableReport(SH2_GYROSCOPE_CALIBRATED, 10000)) {
         while (1) {
           _serial_com->println("IMU failed");
           delay(100);
         }}
     };
-    float readSensor() override;
+    float readSensor(bool apply_filter = false);
+
     
 };
+
+
+struct gyroData{
+  
+  
+};
+
+
 
 
 
