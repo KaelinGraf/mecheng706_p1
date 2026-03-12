@@ -19,11 +19,11 @@ Sensor::Sensor(uint8_t read_pin){
 
 float ShortRangeIR::readSensor(){
   if ((millis() - _last_millis)<=SHORTRANGE_LATENCY){ //in the event of "double read" 
-    return _prev_error;
+    return _prev_reading;
   }
-  _prev_error = applyCalibration(readVoltage(_read_pin))
-  _last_millis = millis()
-  return _prev_error
+  _prev_reading = applyCalibration(readVoltage(_read_pin));
+  _last_millis = millis();
+  return _prev_reading;
 }
 
 float ShortRangeIR::applyCalibration(float adc_voltage){
@@ -45,27 +45,26 @@ float ShortRangeIR::applyCalibration(float adc_voltage){
 
 float LongRangeIR::readSensor(){
   if ((millis() - _last_millis)<=LONGRANGE_LATENCY){ //in the event of "double read" 
-    return _prev_error;
+    return _prev_reading;
   }
-  _prev_error = applyCalibration(readVoltage(_read_pin))
-  _last_millis = millis()
-  return _prev_error
+  _prev_reading = applyCalibration(readVoltage(_read_pin));
+  _last_millis = millis();
+  return _prev_reading;
 }
 
 float LongRangeIR::applyCalibration(float adc_voltage){
   //Impliments the calibration profile shown on the datasheet (only for the linear region)
   //Outside of the linear region should be treated as out-of-bounds (Returns -1)
   //Datasheet maps V = (1/[L])m + c, thus L = 1/V between voltage ranges of 0.3V - 3V
-  const float m = -1.0f;
-  const float c = -1.0f;
-  const float x = 0.0;
+  const float m = 18.744f;
+  const float c = 0.3196f;
   if (adc_voltage < _min_voltage){
     return -1.0;
   }
   else if (adc_voltage > _max_voltage){
     return -1.0;
   }
-  return -1.0; //replace with logic when done 
+  return (1/((adc_voltage - c) / m));
   
 }
 
@@ -94,7 +93,7 @@ float Ultrasonic::readSensor() {
       if (DIAGNOSTICS){
         _serial_com->println("HC-SR04: NOT found");
       }
-      return;
+      return -1;
     }
   }
 
@@ -135,6 +134,25 @@ float Ultrasonic::readSensor() {
   return cm;
 };
 
+
+float Gyroscope::readSensor(){
+  if (_bno08x->wasReset()) {
+    _bno08x->enableReport(SH2_GYROSCOPE_UNCALIBRATED);
+  }
+
+  if (_bno08x->getSensorEvent(_sensorValue)) {
+    if (_sensorValue->sensorId == SH2_GYROSCOPE_UNCALIBRATED) {
+      float gyroZ =
+          _sensorValue->un.gyroscope
+              .z;  // Current Measured Angular Velocity Around The Z Axis
+      _serial_com->print("Gyroscope I2C: ");
+      _serial_com->println(gyroZ);
+      return gyroZ;
+
+    }
+  }
+  return -1001.0;
+};
 
 
 

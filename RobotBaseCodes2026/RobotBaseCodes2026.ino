@@ -33,6 +33,7 @@
 #include "mappings.h"
 #include <Servo.h>            //Need for Servo pulse output
 #include "pid.h"
+#include "servo_control.h"
 
 // Gyroscope initialisation
 Adafruit_BNO08x bno08x(-1);
@@ -52,19 +53,11 @@ enum STATE { INITIALISING, RUNNING, STOPPED };
 
 
 
-// Default motor control pins
-const byte left_front = 46;
-const byte left_rear = 47;
-const byte right_rear = 50;
-const byte right_front = 51;
 
 
-Servo left_font_motor;   // create servo object to control Vex Motor Controller 29
-Servo left_rear_motor;   // create servo object to control Vex Motor Controller 29
-Servo right_rear_motor;  // create servo object to control Vex Motor Controller 29
-Servo right_font_motor;  // create servo object to control Vex Motor Controller 29
 
-Servo turret_motor;
+
+
 
 int speed_val = 100;
 int speed_change;
@@ -82,7 +75,7 @@ void setupWireless();
 
 int pos = 0;
 void setup(void) {
-  turret_motor.attach(11);
+  //turret_motor.attach(11);
   pinMode(LED_BUILTIN, OUTPUT);
 
   // The Trigger pin will tell the sensor to range find
@@ -127,7 +120,7 @@ STATE initialising() {
   SerialCom->println("INITIALISING....");
   delay(1000);  // One second delay to see the serial string "INITIALISING...."
   SerialCom->println("Enabling Motors...");
-  enable_motors();
+  //enable_motors();
   setupWireless();
 
 #ifndef NO_READ_GYRO
@@ -148,7 +141,7 @@ STATE initialising() {
 STATE running() {
   static unsigned long previous_millis;
 
-  read_serial_command();
+  //read_serial_command();
   fast_flash_double_LED_builtin();
 
   if (millis() - previous_millis >
@@ -172,7 +165,7 @@ STATE running() {
     if (!is_battery_voltage_OK()) return STOPPED;
 #endif
 
-    turret_motor.write(pos);
+    //turret_motor.write(pos);
 
     if (pos == 0) {
       pos = 45;
@@ -189,7 +182,7 @@ STATE stopped() {
   static byte counter_lipo_voltage_ok;
   static unsigned long previous_millis;
   int Lipo_level_cal;
-  disable_motors();
+  //disable_motors();
   slow_flash_LED_builtin();
 
   if (millis() - previous_millis > 500) {  // print massage every 500ms
@@ -204,7 +197,7 @@ STATE stopped() {
       counter_lipo_voltage_ok++;
       if (counter_lipo_voltage_ok > 10) {  // Making sure lipo voltage is stable
         counter_lipo_voltage_ok = 0;
-        enable_motors();
+        //enable_motors();
         SerialCom->println("Lipo OK returning to RUN STATE");
         return RUNNING;
       }
@@ -377,142 +370,142 @@ void GYRO_reading() {
 }
 #endif
 
-// Serial command pasing
-void read_serial_command() {
-  if (SerialCom->available()) {
-    char val = SerialCom->read();
-    SerialCom->print("Speed:");
-    SerialCom->print(speed_val);
-    SerialCom->print(" ms ");
+// // Serial command pasing
+// void read_serial_command() {
+//   if (SerialCom->available()) {
+//     char val = SerialCom->read();
+//     SerialCom->print("Speed:");
+//     SerialCom->print(speed_val);
+//     SerialCom->print(" ms ");
 
-    // Perform an action depending on the command
-    switch (val) {
-      case 'w':  // Move Forward
-      case 'W':
-        forward();
-        SerialCom->println("Forward");
-        break;
-      case 's':  // Move Backwards
-      case 'S':
-        reverse();
-        SerialCom->println("Backwards");
-        break;
-      case 'q':  // Turn Left
-      case 'Q':
-        strafe_left();
-        SerialCom->println("Strafe Left");
-        break;
-      case 'e':  // Turn Right
-      case 'E':
-        strafe_right();
-        SerialCom->println("Strafe Right");
-        break;
-      case 'a':  // Turn Right
-      case 'A':
-        ccw();
-        SerialCom->println("ccw");
-        break;
-      case 'd':  // Turn Right
-      case 'D':
-        cw();
-        SerialCom->println("cw");
-        break;
-      case '-':  // Turn Right
-      case '_':
-        speed_change = -100;
-        SerialCom->println("-100");
-        break;
-      case '=':
-      case '+':
-        speed_change = 100;
-        SerialCom->println("+");
-        break;
-      default:
-        stop();
-        SerialCom->println("stop");
-        break;
-    }
-  }
-}
+//     // Perform an action depending on the command
+//     switch (val) {
+//       case 'w':  // Move Forward
+//       case 'W':
+//         forward();
+//         SerialCom->println("Forward");
+//         break;
+//       case 's':  // Move Backwards
+//       case 'S':
+//         reverse();
+//         SerialCom->println("Backwards");
+//         break;
+//       case 'q':  // Turn Left
+//       case 'Q':
+//         strafe_left();
+//         SerialCom->println("Strafe Left");
+//         break;
+//       case 'e':  // Turn Right
+//       case 'E':
+//         strafe_right();
+//         SerialCom->println("Strafe Right");
+//         break;
+//       case 'a':  // Turn Right
+//       case 'A':
+//         ccw();
+//         SerialCom->println("ccw");
+//         break;
+//       case 'd':  // Turn Right
+//       case 'D':
+//         cw();
+//         SerialCom->println("cw");
+//         break;
+//       case '-':  // Turn Right
+//       case '_':
+//         speed_change = -100;
+//         SerialCom->println("-100");
+//         break;
+//       case '=':
+//       case '+':
+//         speed_change = 100;
+//         SerialCom->println("+");
+//         break;
+//       default:
+//         stop();
+//         SerialCom->println("stop");
+//         break;
+//     }
+//   }
+// }
 
 //----------------------Motor moments------------------------
 // The Vex Motor Controller 29 use Servo Control signals to determine speed and
 // direction, with 0 degrees meaning neutral
 // https://en.wikipedia.org/wiki/Servo_control
 
-void disable_motors() {
-  left_font_motor.detach();   // detach the servo on pin left_front to turn Vex
-                              // Motor Controller 29 Off
-  left_rear_motor.detach();   // detach the servo on pin left_rear to turn Vex
-                              // Motor Controller 29 Off
-  right_rear_motor.detach();  // detach the servo on pin right_rear to turn Vex
-                              // Motor Controller 29 Off
-  right_font_motor.detach();  // detach the servo on pin right_front to turn Vex
-                              // Motor Controller 29 Off
+// void disable_motors() {
+//   left_font_motor.detach();   // detach the servo on pin left_front to turn Vex
+//                               // Motor Controller 29 Off
+//   left_rear_motor.detach();   // detach the servo on pin left_rear to turn Vex
+//                               // Motor Controller 29 Off
+//   right_rear_motor.detach();  // detach the servo on pin right_rear to turn Vex
+//                               // Motor Controller 29 Off
+//   right_font_motor.detach();  // detach the servo on pin right_front to turn Vex
+//                               // Motor Controller 29 Off
 
-  pinMode(left_front, INPUT);
-  pinMode(left_rear, INPUT);
-  pinMode(right_rear, INPUT);
-  pinMode(right_front, INPUT);
-}
+//   pinMode(left_front, INPUT);
+//   pinMode(left_rear, INPUT);
+//   pinMode(right_rear, INPUT);
+//   pinMode(right_front, INPUT);
+// }
 
-void enable_motors() {
-  left_font_motor.attach(left_front);  // attaches the servo on pin left_front
-                                       // to turn Vex Motor Controller 29 On
-  left_rear_motor.attach(left_rear);   // attaches the servo on pin left_rear to
-                                       // turn Vex Motor Controller 29 On
-  right_rear_motor.attach(right_rear);  // attaches the servo on pin right_rear
-                                        // to turn Vex Motor Controller 29 On
-  right_font_motor.attach(
-      right_front);  // attaches the servo on pin right_front to turn Vex Motor
-                     // Controller 29 On
-}
-void stop()  // Stop
-{
-  left_font_motor.writeMicroseconds(1500);
-  left_rear_motor.writeMicroseconds(1500);
-  right_rear_motor.writeMicroseconds(1500);
-  right_font_motor.writeMicroseconds(1500);
-}
+// void enable_motors() {
+//   left_font_motor.attach(left_front);  // attaches the servo on pin left_front
+//                                        // to turn Vex Motor Controller 29 On
+//   left_rear_motor.attach(left_rear);   // attaches the servo on pin left_rear to
+//                                        // turn Vex Motor Controller 29 On
+//   right_rear_motor.attach(right_rear);  // attaches the servo on pin right_rear
+//                                         // to turn Vex Motor Controller 29 On
+//   right_font_motor.attach(
+//       right_front);  // attaches the servo on pin right_front to turn Vex Motor
+//                      // Controller 29 On
+// }
+// void stop()  // Stop
+// {
+//   left_font_motor.writeMicroseconds(1500);
+//   left_rear_motor.writeMicroseconds(1500);
+//   right_rear_motor.writeMicroseconds(1500);
+//   right_font_motor.writeMicroseconds(1500);
+// }
 
-void forward() {
-  left_font_motor.writeMicroseconds(1500 + speed_val);
-  left_rear_motor.writeMicroseconds(1500 + speed_val);
-  right_rear_motor.writeMicroseconds(1500 - speed_val);
-  right_font_motor.writeMicroseconds(1500 - speed_val);
-}
+// void forward() {
+//   left_font_motor.writeMicroseconds(1500 + speed_val);
+//   left_rear_motor.writeMicroseconds(1500 + speed_val);
+//   right_rear_motor.writeMicroseconds(1500 - speed_val);
+//   right_font_motor.writeMicroseconds(1500 - speed_val);
+// }
 
-void reverse() {
-  left_font_motor.writeMicroseconds(1500 - speed_val);
-  left_rear_motor.writeMicroseconds(1500 - speed_val);
-  right_rear_motor.writeMicroseconds(1500 + speed_val);
-  right_font_motor.writeMicroseconds(1500 + speed_val);
-}
+// void reverse() {
+//   left_font_motor.writeMicroseconds(1500 - speed_val);
+//   left_rear_motor.writeMicroseconds(1500 - speed_val);
+//   right_rear_motor.writeMicroseconds(1500 + speed_val);
+//   right_font_motor.writeMicroseconds(1500 + speed_val);
+// }
 
-void ccw() {
-  left_font_motor.writeMicroseconds(1500 - speed_val);
-  left_rear_motor.writeMicroseconds(1500 - speed_val);
-  right_rear_motor.writeMicroseconds(1500 - speed_val);
-  right_font_motor.writeMicroseconds(1500 - speed_val);
-}
+// void ccw() {
+//   left_font_motor.writeMicroseconds(1500 - speed_val);
+//   left_rear_motor.writeMicroseconds(1500 - speed_val);
+//   right_rear_motor.writeMicroseconds(1500 - speed_val);
+//   right_font_motor.writeMicroseconds(1500 - speed_val);
+// }
 
-void cw() {
-  left_font_motor.writeMicroseconds(1500 + speed_val);
-  left_rear_motor.writeMicroseconds(1500 + speed_val);
-  right_rear_motor.writeMicroseconds(1500 + speed_val);
-  right_font_motor.writeMicroseconds(1500 + speed_val);
-}
+// void cw() {
+//   left_font_motor.writeMicroseconds(1500 + speed_val);
+//   left_rear_motor.writeMicroseconds(1500 + speed_val);
+//   right_rear_motor.writeMicroseconds(1500 + speed_val);
+//   right_font_motor.writeMicroseconds(1500 + speed_val);
+// }
 
-void strafe_left() {
-  left_font_motor.writeMicroseconds(1500 - speed_val);
-  left_rear_motor.writeMicroseconds(1500 + speed_val);
-  right_rear_motor.writeMicroseconds(1500 + speed_val);
-  right_font_motor.writeMicroseconds(1500 - speed_val);
-}
+// void strafe_left() {
+//   left_font_motor.writeMicroseconds(1500 - speed_val);
+//   left_rear_motor.writeMicroseconds(1500 + speed_val);
+//   right_rear_motor.writeMicroseconds(1500 + speed_val);
+//   right_font_motor.writeMicroseconds(1500 - speed_val);
+// }
 
-void strafe_right() {
-  left_font_motor.writeMicroseconds(1500 + speed_val);
-  left_rear_motor.writeMicroseconds(1500 - speed_val);
-  right_rear_motor.writeMicroseconds(1500 - speed_val);
-  right_font_motor.writeMicroseconds(1500 + speed_val);
-}
+// void strafe_right() {
+//   left_font_motor.writeMicroseconds(1500 + speed_val);
+//   left_rear_motor.writeMicroseconds(1500 - speed_val);
+//   right_rear_motor.writeMicroseconds(1500 - speed_val);
+//   right_font_motor.writeMicroseconds(1500 + speed_val);
+// }

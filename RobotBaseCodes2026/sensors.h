@@ -1,6 +1,9 @@
+#include "HardwareSerial.h"
 #include <stdint.h>
 #include "mappings.h"
 #include <Arduino.h>
+#include <Adafruit_BNO08x.h>  //Need for Gyroscope
+
 //Class methods for reading and calibrating different sensor variants
 
 
@@ -36,7 +39,7 @@ class ShortRangeIR: public Sensor{
 
   public:
     ShortRangeIR(uint8_t read_pin) : Sensor(read_pin){
-      _last_millis = millis()
+      _last_millis = millis();
       _prev_reading = -1.0;
     }
     float readSensor() override;
@@ -57,9 +60,10 @@ class LongRangeIR: public Sensor{
 
   public:
     LongRangeIR(uint8_t read_pin) : Sensor(read_pin){
-      _last_millis = millis()
+      _last_millis = millis();
       _prev_reading = -1.0;
     }
+    float readSensor() override;
     float applyCalibration(float adc_voltage) override;
 };
 
@@ -77,3 +81,35 @@ class Ultrasonic: public Sensor{
     void applyCalibration(){};
     
 };
+
+
+class Gyroscope: public Sensor{
+  private:
+    Adafruit_BNO08x* _bno08x;
+    sh2_SensorValue_t* _sensorValue;
+    float _rad = 0.0;
+    float _last_omega = 0.0;
+    uint32_t _prev_micros = 0.0;
+    HardwareSerial* _serial_com;
+
+    
+  public:
+    Gyroscope(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom):Sensor(uint8_t(0)),_bno08x(bno08x),_sensorValue(sensorValue),_serial_com(SerialCom){
+      _serial_com->println("Enabling Gyroscope...");
+      if (!_bno08x->begin_I2C() ||
+          !_bno08x->enableReport(SH2_GYROSCOPE_UNCALIBRATED, 10000)) {
+        while (1) {
+          _serial_com->println("IMU failed");
+          delay(100);
+        }}
+    };
+    float readSensor() override;
+    
+};
+
+
+
+
+
+
+
