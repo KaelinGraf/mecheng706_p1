@@ -1,16 +1,12 @@
 #include <stdint.h>
 #include <Servo.h>
 #include "mappings.h"
+#include "utils.h"
 const int left_front_multis[3] = {1,1,-1};
 const int left_rear_multis[3] = {1,-1,-1};
 const int right_front_multis[3] = {1,-1,1};
 const int right_rear_multis[3] = {1,1,1};
-class Motor;
-// Servo left_font_motor;   // create servo object to control Vex Motor Controller 29
-// Servo left_rear_motor;   // create servo object to control Vex Motor Controller 29
-// Servo right_rear_motor;  // create servo object to control Vex Motor Controller 29
-// Servo right_font_motor;  // create servo object to control Vex Motor Controller 29
-// Servo turret_motor;      // create servo object to control turret servo
+
 
 
 enum motorName{
@@ -49,10 +45,7 @@ class driveMotors{
 
   public:
     driveMotors():_left_font_motor(left_front_multis, left_front_pin),_left_rear_motor(left_rear_multis, left_rear_pin),_right_front_motor(right_front_multis, right_front_pin),_right_rear_motor(right_rear_multis, right_rear_pin){
-      //_left_font_motor = Motor(left_front_multis, left_front_pin);
-      // _left_rear_motor = Motor(left_rear_multis, left_rear_pin);
-      // _right_rear_motor = Motor(right_rear_multis, right_rear_pin);
-      // _right_front_motor = Motor(right_front_multis, right_front_pin);
+
     }
     writeMotor(motorName target_motor, uint16_t speed);
 
@@ -64,6 +57,5 @@ class driveMotors{
 class turret : public Motor{
   public:
     turret(uint8_t motor_pin):Motor(motor_pin){};
-    
 
 };
