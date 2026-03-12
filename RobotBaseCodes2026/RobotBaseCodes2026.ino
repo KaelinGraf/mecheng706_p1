@@ -34,6 +34,7 @@
 #include <Servo.h>            //Need for Servo pulse output
 #include "pid.h"
 #include "servo_control.h"
+#include "fsm.h"
 
 // Gyroscope initialisation
 Adafruit_BNO08x bno08x(-1);
@@ -51,14 +52,6 @@ float rad = 0.0;
 // State machine states
 enum STATE { INITIALISING, RUNNING, STOPPED };
 
-
-
-
-
-
-
-
-
 int speed_val = 100;
 int speed_change;
 
@@ -74,6 +67,7 @@ void serialOutput(int32_t Value1, int32_t Value2, int32_t Value3);
 void setupWireless();
 
 int pos = 0;
+Fsm *fsm = new Fsm();
 void setup(void) {
   //turret_motor.attach(11);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -140,6 +134,8 @@ STATE initialising() {
 
 STATE running() {
   static unsigned long previous_millis;
+
+  StateResult *res = fsm->pollState();
 
   //read_serial_command();
   fast_flash_double_LED_builtin();

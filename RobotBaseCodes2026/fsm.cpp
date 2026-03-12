@@ -8,9 +8,10 @@ Fsm::Fsm() {
   current_state_= new FindCorner(this);
   current_state_->begin();
 
+  // initilise all states, prevents memory managment issues
   states_[State::FIND_CORNER] = new FindCorner(this);
-  states_[State::TILL] = new Till(this);
-  states_[State::TURN] = new Turn(this);
+  states_[State::TILL]        = new Till(this);
+  states_[State::TURN]        = new Turn(this);
 }
 
 bool Fsm::switchState(State::Name newState) {
@@ -19,7 +20,7 @@ bool Fsm::switchState(State::Name newState) {
         current_state_->end();
     }
 
-    // 2. Look up the new state in our array (O(1) time complexity, no switch!)
+    // 2. Look up the new state
     current_state_ = states_[newState];
 
     // 3. Begin the new state
