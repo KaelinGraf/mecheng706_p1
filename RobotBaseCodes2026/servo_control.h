@@ -16,7 +16,7 @@ enum motorName{
   right_front,
 };
 class Motor{
-  private:
+  protected:
     Servo _motor;
     const int* _control_multipliers; //array of i.e [1,-1,1] for front right motor (multipliers for control effort Vx Vy Vtheta)
 
@@ -31,7 +31,7 @@ class Motor{
     ~Motor(){
       _motor.detach();
     }
-    void writeMotor(uint16_t microseconds);
+    virtual void writeMotor(uint16_t microseconds);
     void writeMotor(uint16_t vx, uint16_t vy, uint16_t vtheta);
     void stopMotor();
 };
@@ -57,5 +57,6 @@ class driveMotors{
 class turret : public Motor{
   public:
     turret(uint8_t motor_pin):Motor(motor_pin){};
+    void writeMotor(int angle);
 
 };
