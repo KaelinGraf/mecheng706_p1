@@ -1,6 +1,11 @@
 #include "Arduino.h"
 #include"sensors.h"
+#include <avr/interrupt.h>
 
+Ultrasonic *us = new Ultrasonic(ECHO_PIN, TRIG_PIN, MAX_DIST, &Serial);
+ISR(INT4_vect) {
+  us->setReturnTime(micros());
+}
 
 float Sensor::readSensor(){
   return applyCalibration(float(analogRead(_read_pin)));
@@ -68,9 +73,20 @@ float LongRangeIR::applyCalibration(float adc_voltage){
   
 }
 
+void Ultrasonic::initUltrasonic(){
+  runUltrasonic();
+}
+
+void Ultrasonic::runUltrasonic(){
+  digitalWrite(_trigger_pin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(_trigger_pin, LOW);
+  setSentTime(micros());
+}
 
 Ultrasonic::Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, uint8_t max_dist, HardwareSerial* SerialCom) 
 : Sensor(uint8_t(255)),  _echo_pin(echo_pin), _trigger_pin(trigger_pin), _max_dist(max_dist),_serial_com(SerialCom){
+  initUltrasonic();
 };
 float Ultrasonic::readSensor() {
   unsigned long t1;
@@ -79,11 +95,7 @@ float Ultrasonic::readSensor() {
   float cm;
   float inches;
 
-  // Hold the trigger pin high for at least 10 us
-  digitalWrite(_trigger_pin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(_trigger_pin, LOW);
-
+  /*
   // Wait for pulse on echo pin
   t1 = micros();
   while (digitalRead(_echo_pin) == 0) {
@@ -111,8 +123,10 @@ float Ultrasonic::readSensor() {
       return;
     }
   }
+  */
 
-  t2 = micros();
+  t2 = getReturnTime();
+  t1 = getSentTime();
   pulse_width = t2 - t1;
 
   // Calculate distance in centimeters and inches. The constants
@@ -131,20 +145,24 @@ float Ultrasonic::readSensor() {
       _serial_com->println("cm");
     }
   }
+  runUltrasonic();
   return cm;
 };
 
 
-float Gyroscope::readSensor(bool apply_filter=false){
+float Gyroscope::readSensor(){
   if (_bno08x->wasReset()) {
-    _bno08x->enableReport(SH2_GYROSCOPE_CALIBRATED);
+    _bno08x->enableReport(SH2_GYROSCOPE_UNCALIBRATED);
   }
 
   if (_bno08x->getSensorEvent(_sensorValue)) {
-    if (_sensorValue->sensorId == SH2_GYROSCOPE_CALIBRATED) {
-      float gyroZ =_sensorValue->un.gyroscope.z;  // Current Measured Angular Velocity Around The Z Axis
-      _prev_measurements->push(gyroZ);
-      return (apply_filter)? _prev_measurements->average():gyroZ;
+    if (_sensorValue->sensorId == SH2_GYROSCOPE_UNCALIBRATED) {
+      float gyroZ =
+          _sensorValue->un.gyroscope
+              .z;  // Current Measured Angular Velocity Around The Z Axis
+      _serial_com->print("Gyroscope I2C: ");
+      _serial_com->println(gyroZ);
+      return gyroZ;
 
     }
   }

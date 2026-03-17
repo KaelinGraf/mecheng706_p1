@@ -69,6 +69,10 @@ void setupWireless();
 int pos = 0;
 Fsm *fsm = new Fsm();
 void setup(void) {
+
+  EICRB |= (1 << ISC40);   // any logical change
+  EIMSK |= (1 << INT4);
+  
   //turret_motor.attach(11);
   pinMode(LED_BUILTIN, OUTPUT);
 
