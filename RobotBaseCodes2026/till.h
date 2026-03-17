@@ -5,12 +5,12 @@
 
 class Till : public State {
   public:
-    Till(Fsm* fsm) : State(State::TILL, fsm), count_(0), last_millis_(0) {}
+    Till(Tiller* tiller) : State(State::TILL, tiller), count_(0), last_millis_(0) {}
     ~Till() {};
 
     void begin() override;
     void end() override;
-    StateResult* poll() override;
+    void poll() override;
   
   private:
     int count_;

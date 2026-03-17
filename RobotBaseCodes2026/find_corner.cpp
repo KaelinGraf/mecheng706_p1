@@ -1,6 +1,6 @@
 #include "Arduino.h"
 #include "find_corner.h"
-#include "fsm.h"
+#include "tiller.h"
 
 void FindCorner::begin() {
   Serial.println("finding Corner...");
@@ -8,9 +8,7 @@ void FindCorner::begin() {
 
 void FindCorner::end() {}
 
-StateResult *FindCorner::poll() {
+void FindCorner::poll() {
   Serial.println("finding Corner...");
-  fsm_->switchState(State::TILL);
-
-  return nullptr;
+  tiller_->switchState(State::TILL);
 }

@@ -1,6 +1,7 @@
 // Author: Marshall Lim
 
 #include <SoftwareSerial.h>
+#include "initialising.h"
 
 #define INTERNAL_LED 13
 
@@ -103,4 +104,32 @@ void setupWireless() {
   Serial.println(" seconds");
 
   delaySeconds(STARTUP_DELAY);
+}
+
+void Initialising::begin() {
+  Serial.println("INITIALISING....");
+  delay(1000);  // One second delay to see the serial string "INITIALISING...."
+  tiller_->println("Enabling Motors...");
+  //enable_motors();
+
+  setupWireless();
+
+#ifndef NO_READ_GYRO
+  tiller->println("Enabling Gyroscope...");
+  if (!bno08x.begin_I2C() ||
+      !bno08x.enableReport(SH2_GYROSCOPE_UNCALIBRATED, 10000)) {
+    while (1) {
+      tiller->println("IMU failed");
+      delay(100);
+    }
+  }
+#endif
+}
+
+void Initialising::end() {
+  tiller_->println("Finished Initilising");
+}
+
+void Initialising::poll() {
+  tiller_->switchState(State::FIND_CORNER);
 }
