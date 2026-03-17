@@ -5,9 +5,9 @@
 #include "turn.h"
 #include "initialising.h"
 
-Tiller::Tiller() {
+Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom):_front_left_ir(front_left_ir_pin),_front_right_ir(front_right_ir_pin),_side_left_ir(side_left_ir_pin),_side_right_ir(side_right_ir_pin) {
   current_state_= new Initialising(this);
-  serialCom_ = &Serial;
+  serialCom_ = SerialCom;
   current_state_->begin();
 
   // initilise all states, prevents memory managment issues
@@ -15,6 +15,8 @@ Tiller::Tiller() {
   states_[State::FIND_CORNER]  = new FindCorner(this);
   states_[State::TILL]         = new Till(this);
   states_[State::TURN]         = new Turn(this);
+
+  _gyro = new Gyroscope(bno08x, sensorValue, SerialCom);
 }
 
 bool Tiller::switchState(State::Name newState) {

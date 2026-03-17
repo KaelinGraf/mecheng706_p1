@@ -1,3 +1,6 @@
+#ifndef SENSORS_H
+#define SENSORS_H
+
 #include "HardwareSerial.h"
 #include <stdint.h>
 #include "mappings.h"
@@ -8,11 +11,7 @@
 //Class methods for reading and calibrating different sensor variants
 
 
-readVoltage(uint8_t pin){
-  float adc_value = (analogRead(pin));
-  return (adc_value / ADC_RANGE) * V_ADC;
-
-}
+float readVoltage(uint8_t pin);
 
 
 class Sensor{
@@ -106,6 +105,7 @@ class Gyroscope: public Sensor{
         }}
     };
     float readSensor(bool apply_filter = false);
+    float applyCalibration(float adc_voltage) override {return -1.0;};
 
     
 };
@@ -116,6 +116,8 @@ struct gyroData{
   
 };
 
+
+#endif
 
 
 

@@ -30,3 +30,13 @@
 #define max_duty_turret  2100
 #define min_duty_turret  900
 #define neutral_turret  1500
+
+#define front_left_ir_pin 1
+#define front_right_ir_pin 1
+#define side_right_ir_pin 1
+#define side_left_ir_pin 1
+
+
+#define gyro_omega_0_kp 1
+#define gyro_omega_0_ki 0
+#define gyro_omega_0_kd 0

@@ -1,3 +1,6 @@
+#ifndef PID_H
+#define PID_H
+
 #include <stdint.h>
 #include <Arduino.h>
 
@@ -15,11 +18,12 @@ class PID{
     bool _integral_enabled=false;
     OutputType _output_min;
     OutputType _output_max;
+    OutputType _output_neutral;
 
   
   public:
-    PID(float kp = 0.0f, float ki = 0.0f, float kd = 0.0f, float f = 0.0f,bool enable_integral=false, OutputType output_min=0, OutputType output_max=255)
-        : _kp(kp), _ki(ki), _kd(kd), _f(f),_integral_enabled(enable_integral),_output_min(output_min),_output_max(output_max) {
+    PID(float kp = 0.0f, float ki = 0.0f, float kd = 0.0f, float f = 0.0f,bool enable_integral=false, OutputType output_min=0, OutputType output_max=255, OutputType output_neutral=0)
+        : _kp(kp), _ki(ki), _kd(kd), _f(f),_integral_enabled(enable_integral),_output_min(output_min),_output_max(output_max),_output_neutral(output_neutral) {
     
     }
     void setFeedForward(float f){_f=f;};
@@ -68,3 +72,5 @@ OutputType PID<OutputType>::update(float error){
   return static_cast<OutputType>(control_effort);
 
 }
+
+#endif

@@ -1,6 +1,10 @@
 #include "Arduino.h"
 #include"sensors.h"
+float readVoltage(uint8_t pin){
+  float adc_value = (analogRead(pin));
+  return (adc_value / ADC_RANGE) * V_ADC;
 
+}
 
 float Sensor::readSensor(){
   return applyCalibration(float(analogRead(_read_pin)));

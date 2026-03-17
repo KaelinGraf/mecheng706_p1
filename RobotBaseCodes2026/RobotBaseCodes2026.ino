@@ -39,6 +39,8 @@
 // Gyroscope initialisation
 Adafruit_BNO08x bno08x(-1);
 sh2_SensorValue_t sensorValue;
+HardwareSerial* SerialCom;
+
 float rad = 0.0;
 
 // #define NO_READ_GYRO  //Uncomment if GYRO is not attached.
@@ -82,7 +84,7 @@ void setup(void)
 
   // Setup the Serial port and pointer, the pointer allows switching the debug
   // info through the USB port(Serial) or Bluetooth port(Serial1) with ease.
-  tiller = new Tiller();
+  tiller = new Tiller(&bno08x,&sensorValue,SerialCom);
 
   delay(1000); // settling time but no really needed
 }

@@ -1,13 +1,25 @@
+#include <stdint.h>
 #ifndef TILL_H
 #define TILL_H
 
 #include "state.h"
+#include "pid.h"
+
+
 
 class Till : public State {
   public:
-    Till(Tiller* tiller) : State(State::TILL, tiller), count_(0), last_millis_(0) {}
+    Till(Tiller* tiller) : State(State::TILL, tiller), count_(0), last_millis_(0) {
+      _gyro_pid = nullptr;
+    }
     ~Till() {};
-
+    enum SIDE_SENSOR{
+      left,
+      right,
+    };
+    SIDE_SENSOR _target_sensor;
+    float _target_y;
+    enum SIDE_SENSOR findYRef();
     void begin() override;
     void end() override;
     void poll() override;
@@ -15,6 +27,7 @@ class Till : public State {
   private:
     int count_;
     unsigned long last_millis_;
+    PID<uint16_t>* _gyro_pid;
 };
 
 
