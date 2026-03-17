@@ -1,6 +1,6 @@
 #include "Arduino.h"
 #include "till.h"
-#include "fsm.h"
+#include "tiller.h"
 
 void Till::begin() {
   Serial.println("tilling");
@@ -12,7 +12,7 @@ void Till::end() {
   Serial.println("stopped tilling");
 }
 
-StateResult *Till::poll() {
+void Till::poll() {
   const long t = millis();
   if ((t - last_millis_) > 100) {
     count_++;
@@ -20,7 +20,6 @@ StateResult *Till::poll() {
   }
 
   if (count_ > 30) {
-    fsm_->switchState(State::TURN);
+    tiller_->switchState(State::TURN);
   }
-  return nullptr;
 }

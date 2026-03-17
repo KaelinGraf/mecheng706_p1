@@ -5,12 +5,12 @@
 
 class Turn : public State {
   public:
-    Turn(Fsm* fsm) : State(State::TILL, fsm), count_(0), last_millis_(0) {}
+    Turn(Tiller* tiller) : State(State::TILL, tiller), count_(0), last_millis_(0) {};
     ~Turn() {};
 
     void begin() override;
     void end() override;
-    StateResult* poll() override;
+    void poll() override;
   
   private:
     int count_;

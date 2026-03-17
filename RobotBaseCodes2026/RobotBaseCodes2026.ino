@@ -29,12 +29,12 @@
 -----------------------------
 */
 
-#include <Adafruit_BNO08x.h>  //Need for Gyroscope
+#include <Adafruit_BNO08x.h> //Need for Gyroscope
 #include "mappings.h"
-#include <Servo.h>            //Need for Servo pulse output
+#include <Servo.h> //Need for Servo pulse output
 #include "pid.h"
 #include "servo_control.h"
-#include "fsm.h"
+#include "tiller.h"
 
 // Gyroscope initialisation
 Adafruit_BNO08x bno08x(-1);
@@ -44,19 +44,22 @@ float rad = 0.0;
 // #define NO_READ_GYRO  //Uncomment if GYRO is not attached.
 
 #define NO_HC \
-  -SR04  // Uncomment if HC-SR04 ultrasonic ranging sensor is not attached.
+  -SR04 // Uncomment if HC-SR04 ultrasonic ranging sensor is not attached.
 
 // #define NO_BATTERY_V_OK //Uncomment if BATTERY_V_OK if you do not care about
 // battery damage.
 
 // State machine states
-enum STATE { INITIALISING, RUNNING, STOPPED };
+enum STATE
+{
+  INITIALISING,
+  RUNNING,
+  STOPPED
+};
 
 int speed_val = 100;
 int speed_change;
 
-// Serial Pointer
-HardwareSerial* SerialCom;
 void delaySeconds(int TimedDelaySeconds);
 void flashLED(int LedNumber, int TimedDelay);
 void serialOutputMonitor(int32_t Value1, int32_t Value2, int32_t Value3);
@@ -67,9 +70,10 @@ void serialOutput(int32_t Value1, int32_t Value2, int32_t Value3);
 void setupWireless();
 
 int pos = 0;
-Fsm *fsm = new Fsm();
-void setup(void) {
-  //turret_motor.attach(11);
+Tiller *tiller = nullptr;
+void setup(void)
+{
+  // turret_motor.attach(11);
   pinMode(LED_BUILTIN, OUTPUT);
 
   // The Trigger pin will tell the sensor to range find
@@ -78,215 +82,87 @@ void setup(void) {
 
   // Setup the Serial port and pointer, the pointer allows switching the debug
   // info through the USB port(Serial) or Bluetooth port(Serial1) with ease.
-  SerialCom = &Serial;
-  SerialCom->begin(115200);
-  SerialCom->println("MECHENG706_Base_Code");
-  delay(1000);
-  SerialCom->println("Setup....");
+  tiller = new Tiller();
 
-  delay(1000);  // settling time but no really needed
+  delay(1000); // settling time but no really needed
 }
 
-void loop(void)  // main loop
+void loop(void) // main loop
 {
-  static STATE machine_state = INITIALISING;
-  // Finite-state machine Code
-  switch (machine_state) {
-    case INITIALISING:
-      machine_state = initialising();
-      break;
-    case RUNNING:  // Lipo Battery Volage OK
-      machine_state = running();
-      break;
-    case STOPPED:  // Stop of Lipo Battery voltage is too low, to protect
-                   // Battery
-      machine_state = stopped();
-      break;
-  };
+  tiller->pollState();
 }
 
-void printBluetooth() {
+void printBluetooth()
+{
   serialOutput(analogRead(A4), analogRead(A4), analogRead(A4));
 }
 
-STATE initialising() {
-  // initialising
-  SerialCom->println("INITIALISING....");
-  delay(1000);  // One second delay to see the serial string "INITIALISING...."
-  SerialCom->println("Enabling Motors...");
-  //enable_motors();
-  setupWireless();
-
-#ifndef NO_READ_GYRO
-  SerialCom->println("Enabling Gyroscope...");
-  if (!bno08x.begin_I2C() ||
-      !bno08x.enableReport(SH2_GYROSCOPE_UNCALIBRATED, 10000)) {
-    while (1) {
-      SerialCom->println("IMU failed");
-      delay(100);
-    }
-  }
-#endif
-  SerialCom->println("RUNNING STATE...");
-
-  return RUNNING;
-}
-
-STATE running() {
-  static unsigned long previous_millis;
-
-  StateResult *res = fsm->pollState();
-
-  //read_serial_command();
-  fast_flash_double_LED_builtin();
-
-  if (millis() - previous_millis >
-      500) {  // Arduino style 500ms timed execution statement
-    previous_millis = millis();
-
-    SerialCom->println("RUNNING---------");
-    speed_change_smooth();
-    printBluetooth();
-    Analog_Range_A4();
-
-#ifndef NO_READ_GYRO
-    GYRO_reading();
-#endif
-
-#ifndef NO_HC - SR04
-    HC_SR04_range();
-#endif
-
-#ifndef NO_BATTERY_V_OK
-    if (!is_battery_voltage_OK()) return STOPPED;
-#endif
-
-    //turret_motor.write(pos);
-
-    if (pos == 0) {
-      pos = 45;
-    } else {
-      pos = 0;
-    }
-  }
-
-  return RUNNING;
-}
-
 // Stop of Lipo Battery voltage is too low, to protect Battery
-STATE stopped() {
+STATE stopped()
+{
   static byte counter_lipo_voltage_ok;
   static unsigned long previous_millis;
   int Lipo_level_cal;
-  //disable_motors();
+  // disable_motors();
   slow_flash_LED_builtin();
 
-  if (millis() - previous_millis > 500) {  // print massage every 500ms
+  if (millis() - previous_millis > 500)
+  { // print massage every 500ms
     previous_millis = millis();
-    SerialCom->println("STOPPED---------");
+    tiller->println("STOPPED---------");
 
 #ifndef NO_BATTERY_V_OK
-    // 500ms timed if statement to check lipo and output speed settings
-    if (is_battery_voltage_OK()) {
-      SerialCom->print("Lipo OK waiting of voltage Counter 10 < ");
-      SerialCom->println(counter_lipo_voltage_ok);
-      counter_lipo_voltage_ok++;
-      if (counter_lipo_voltage_ok > 10) {  // Making sure lipo voltage is stable
-        counter_lipo_voltage_ok = 0;
-        //enable_motors();
-        SerialCom->println("Lipo OK returning to RUN STATE");
-        return RUNNING;
-      }
-    } else {
-      counter_lipo_voltage_ok = 0;
-    }
 #endif
   }
   return STOPPED;
 }
 
-void fast_flash_double_LED_builtin() {
+void fast_flash_double_LED_builtin()
+{
   static byte indexer = 0;
   static unsigned long fast_flash_millis;
-  if (millis() > fast_flash_millis) {
+  if (millis() > fast_flash_millis)
+  {
     indexer++;
-    if (indexer > 4) {
+    if (indexer > 4)
+    {
       fast_flash_millis = millis() + 700;
       digitalWrite(LED_BUILTIN, LOW);
       indexer = 0;
-    } else {
+    }
+    else
+    {
       fast_flash_millis = millis() + 100;
       digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     }
   }
 }
 
-void slow_flash_LED_builtin() {
+void slow_flash_LED_builtin()
+{
   static unsigned long slow_flash_millis;
-  if (millis() - slow_flash_millis > 2000) {
+  if (millis() - slow_flash_millis > 2000)
+  {
     slow_flash_millis = millis();
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
   }
 }
 
-void speed_change_smooth() {
+void speed_change_smooth()
+{
   speed_val += speed_change;
-  if (speed_val > 1000) speed_val = 1000;
+  if (speed_val > 1000)
+    speed_val = 1000;
   speed_change = 0;
 }
 
 #ifndef NO_BATTERY_V_OK
-boolean is_battery_voltage_OK() {
-  static byte Low_voltage_counter;
-  static unsigned long previous_millis;
 
-  int Lipo_level_cal;
-  int raw_lipo;
-  // the voltage of a LiPo cell depends on its chemistry and varies from
-  // about 3.5V (discharged) = 717(3.5V Min)
-  // https://oscarliang.com/lipo-battery-guide/ to about 4.20-4.25V (fully
-  // charged) = 860(4.2V Max) Lipo Cell voltage should never go below 3V,
-  // So 3.5V is a safety factor.
-  raw_lipo = analogRead(A0);
-  Lipo_level_cal = (raw_lipo - 717);
-  Lipo_level_cal = Lipo_level_cal * 100;
-  Lipo_level_cal = Lipo_level_cal / 143;
-
-  if (Lipo_level_cal > 0 && Lipo_level_cal < 160) {
-    previous_millis = millis();
-    SerialCom->print("Lipo level:");
-    SerialCom->print(Lipo_level_cal);
-    SerialCom->print("%");
-    // SerialCom->print(" : Raw Lipo:");
-    // SerialCom->println(raw_lipo);
-    SerialCom->println("");
-    Low_voltage_counter = 0;
-    return true;
-  } else {
-    if (Lipo_level_cal < 0)
-      SerialCom->println(
-          "Lipo is Disconnected or Power Switch is turned OFF!!!");
-    else if (Lipo_level_cal > 160)
-      SerialCom->println("!Lipo is Overchanged!!!");
-    else {
-      SerialCom->println(
-          "Lipo voltage too LOW, any lower and the lipo with be damaged");
-      SerialCom->print("Please Re-charge Lipo:");
-      SerialCom->print(Lipo_level_cal);
-      SerialCom->println("%");
-    }
-
-    Low_voltage_counter++;
-    if (Low_voltage_counter > 5)
-      return false;
-    else
-      return true;
-  }
-}
 #endif
 
 #ifndef NO_HC - SR04
-void HC_SR04_range() {
+void HC_SR04_range()
+{
   unsigned long t1;
   unsigned long t2;
   unsigned long pulse_width;
@@ -300,11 +176,13 @@ void HC_SR04_range() {
 
   // Wait for pulse on echo pin
   t1 = micros();
-  while (digitalRead(ECHO_PIN) == 0) {
+  while (digitalRead(ECHO_PIN) == 0)
+  {
     t2 = micros();
     pulse_width = t2 - t1;
-    if (pulse_width > (MAX_DIST + 1000)) {
-      SerialCom->println("HC-SR04: NOT found");
+    if (pulse_width > (MAX_DIST + 1000))
+    {
+      tiller->println("HC-SR04: NOT found");
       return;
     }
   }
@@ -313,11 +191,13 @@ void HC_SR04_range() {
   // Note: the micros() counter will overflow after ~70 min
 
   t1 = micros();
-  while (digitalRead(ECHO_PIN) == 1) {
+  while (digitalRead(ECHO_PIN) == 1)
+  {
     t2 = micros();
     pulse_width = t2 - t1;
-    if (pulse_width > (MAX_DIST + 1000)) {
-      SerialCom->println("HC-SR04: Out of range");
+    if (pulse_width > (MAX_DIST + 1000))
+    {
+      tiller->println("HC-SR04: Out of range");
       return;
     }
   }
@@ -332,34 +212,40 @@ void HC_SR04_range() {
   inches = pulse_width / 148.0;
 
   // Print out results
-  if (pulse_width > MAX_DIST) {
-    SerialCom->println("HC-SR04: Out of range");
-  } else {
-    SerialCom->print("HC-SR04:");
-    SerialCom->print(cm);
-    SerialCom->println("cm");
+  if (pulse_width > MAX_DIST)
+  {
+    tiller->println("HC-SR04: Out of range");
+  }
+  else
+  {
+    tiller->print("HC-SR04:");
+    tiller->print(cm);
+    tiller->println("cm");
   }
 }
 #endif
 
-void Analog_Range_A4() {
-  SerialCom->print("Analog Range A4:");
-  SerialCom->println(analogRead(A4));
+void Analog_Range_A4()
+{
+  tiller->print("Analog Range A4:");
+  tiller->println(analogRead(A4));
 }
 
 #ifndef NO_READ_GYRO
-void GYRO_reading() {
-  if (bno08x.wasReset()) {
+void GYRO_reading()
+{
+  if (bno08x.wasReset())
+  {
     bno08x.enableReport(SH2_GYROSCOPE_UNCALIBRATED);
   }
 
-  if (bno08x.getSensorEvent(&sensorValue)) {
-    if (sensorValue.sensorId == SH2_GYROSCOPE_UNCALIBRATED) {
-      float gyroZ =
-          sensorValue.un.gyroscope
-              .z;  // Current Measured Angular Velocity Around The Z Axis
-      SerialCom->print("Gyroscope I2C: ");
-      SerialCom->println(gyroZ);
+  if (bno08x.getSensorEvent(&sensorValue))
+  {
+    if (sensorValue.sensorId == SH2_GYROSCOPE_UNCALIBRATED)
+    {
+      float gyroZ = sensorValue.un.gyroscope.z; // Current Measured Angular Velocity Around The Z Axis
+      tiller->print("Gyroscope I2C: ");
+      tiller->println(gyroZ);
     }
   }
   return;

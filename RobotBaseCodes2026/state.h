@@ -1,37 +1,36 @@
 #ifndef STATE_H
 #define STATE_H
 
-class Fsm;
+class Tiller;
 struct StateResult;
 
-class State {
+class State
+{
 public:
-    enum Name {
+    enum Name
+    {
+        INITIALISING,
         FIND_CORNER,
         TILL,
         TURN,
+        STOPPED,
 
         // leave last, gives access to length of states
         NUM_STATES,
     };
 
-    State(Name name, Fsm *fsm) : name_(name), fsm_(fsm) {};
+    State(Name name, Tiller *tiller) : name_(name), tiller_(tiller) {};
     virtual ~State() {};
 
     inline Name getState() const { return name_; }
 
     virtual void begin() = 0;
     virtual void end() = 0;
-    virtual StateResult* poll() { return nullptr; };
+    virtual void poll() {};
 
 protected:
     Name name_;
-    Fsm *fsm_;
-};
-
-struct StateResult {
-    State::Name next_state;
-    void *data;
+    Tiller *tiller_;
 };
 
 #endif // STATE_H
