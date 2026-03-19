@@ -1,3 +1,4 @@
+#include "HardwareSerial.h"
 #include "Arduino.h"
 #include "till.h"
 #include "tiller.h"
@@ -9,8 +10,8 @@ void Till::begin(void* target_y) {
   count_ = 0;
   _target_sensor= findYRef();
   _target_y = (static_cast<float*>(target_y));
-  _gyro_pid = new PID<uint16_t>(gyro_omega_0_kp,gyro_omega_0_ki,gyro_omega_0_kd,float(neutral),false,min_duty_motor,max_duty_motor,neutral);
-  _y_pid = new PID<uint16_t>(y_dist_pid_kp,y_dist_pid_ki,y_dist_pid_kd, float(neutral),false,min_duty_motor,max_duty_motor,neutral);
+  _gyro_pid = new PID<uint16_t>(gyro_omega_0_kp,gyro_omega_0_ki,gyro_omega_0_kd,0.0,false,-100.0,100.0);
+  _y_pid = new PID<uint16_t>(y_dist_pid_kp,y_dist_pid_ki,y_dist_pid_kd, float(neutral),false,-100.0,100.0);
   
 }
 
@@ -31,10 +32,11 @@ void Till::poll() {
 
   angle_control_effort = _gyro_pid->update(omega);
   y_control_effort = _y_pid->update(y_error);
+  tiller_->_motors->writeAllMotors(0, y_control_effort, angle_control_effort);
   
-  if (count_ > 30) {
-    tiller_->switchState(State::TURN);
-  }
+  // if (count_ > 30) {
+  //   tiller_->switchState(State::TURN);
+  // }
 }
 
 

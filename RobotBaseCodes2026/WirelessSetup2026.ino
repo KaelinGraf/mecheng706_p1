@@ -114,16 +114,16 @@ void Initialising::begin() {
 
   setupWireless();
 
-#ifndef NO_READ_GYRO
-  tiller->println("Enabling Gyroscope...");
-  if (!bno08x.begin_I2C() ||
-      !bno08x.enableReport(SH2_GYROSCOPE_UNCALIBRATED, 10000)) {
-    while (1) {
-      tiller->println("IMU failed");
-      delay(100);
-    }
-  }
-#endif
+// #ifndef NO_READ_GYRO
+//   tiller->println("Enabling Gyroscope...");
+//   if (!bno08x.begin_I2C() ||
+//       !bno08x.enableReport(SH2_GYROSCOPE_CALIBRATED, 10000)) {
+//     while (1) {
+//       tiller->println("IMU failed");
+//       delay(100);
+//     }
+//   }
+// #endif
 }
 
 void Initialising::end() {

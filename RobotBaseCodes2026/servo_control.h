@@ -39,22 +39,24 @@ class Motor{
       _motor.detach();
     }
     virtual void writeMotor(uint16_t microseconds);
-    void writeMotor(uint16_t vx, uint16_t vy, uint16_t vtheta);
+    void writeMotor(float vx, float vy, float vtheta);
     void stopMotor();
+    uint16_t scaleMotor(float control_effor_sum, float output_min, float output_max); //output min and output max refer to the ranges of the summed control effort.
 };
 
 class driveMotors{
   private:
-    Motor _left_font_motor;
+    Motor _left_front_motor;
     Motor _left_rear_motor;
     Motor _right_front_motor;
     Motor _right_rear_motor;
 
   public:
-    driveMotors():_left_font_motor(left_front_multis, left_front_pin),_left_rear_motor(left_rear_multis, left_rear_pin),_right_front_motor(right_front_multis, right_front_pin),_right_rear_motor(right_rear_multis, right_rear_pin){
+    driveMotors():_left_front_motor(left_front_multis, left_front_pin),_left_rear_motor(left_rear_multis, left_rear_pin),_right_front_motor(right_front_multis, right_front_pin),_right_rear_motor(right_rear_multis, right_rear_pin){
 
     }
-    writeMotor(motorName target_motor, uint16_t speed);
+    void writeMotor(motorName target_motor, uint16_t speed);
+    void writeAllMotors(float vx, float vy, float vtheta);
 
 };
 
