@@ -15,10 +15,13 @@ class PID{
     float _prev_error=0;
     float _error_integral=0;
     uint32_t _prev_micros = 0;
+    float _alpha=0.7;
+    float _prev_derivative=0;
     bool _integral_enabled=false;
     OutputType _output_min;
     OutputType _output_max;
     OutputType _output_neutral;
+
 
   
   public:
@@ -52,6 +55,7 @@ class PID{
 template<typename OutputType>
 OutputType PID<OutputType>::update(float error, float derivative = 0){
   float d_term = 0;
+  float filtered_derivative = 0;
   uint32_t now = micros();
   float delta_time = (now - _prev_micros)/1000000.0f;
   _prev_micros = now;
@@ -64,7 +68,9 @@ OutputType PID<OutputType>::update(float error, float derivative = 0){
   }else{
     d_term = _kd * derivative;
   }
-  float control_effort = p_term + i_term + d_term;
+  filtered_derivative = (_alpha * d_term) + ((1.0f - _alpha) * _prev_derivative);
+  _prev_derivative = filtered_derivative;
+  float control_effort = p_term + i_term + filtered_derivative;
 
   if (control_effort > static_cast<float>(_output_max)){
     control_effort = _output_max;
