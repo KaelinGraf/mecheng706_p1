@@ -62,7 +62,7 @@ OutputType PID<OutputType>::update(float error, float derivative = 0){
   float p_term = _kp * error;
   _error_integral = (_integral_enabled) ? _error_integral + (error * delta_time) : 0.0;
   float i_term = _error_integral * _ki;
-  if (derivative = 0){
+  if (derivative == 0){
     d_term = _kd * ((error - _prev_error)/delta_time);
 
   }else{
