@@ -19,7 +19,7 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
   _gyro = new Gyroscope(bno08x, sensorValue, SerialCom);
 }
 
-bool Tiller::switchState(State::Name newState) {
+bool Tiller::switchState(State::Name newState, void* data = nullptr) {
 // 1. End the current state
     if (current_state_) {
         current_state_->end();
@@ -39,8 +39,15 @@ bool Tiller::switchState(State::Name newState) {
 
     // 3. Begin the new state
     if (current_state_) {
+      if (data != nullptr){
+        current_state_->begin(data);
+        return true;
+      }
+      else{
         current_state_->begin();
         return true;
+
+      }
     }
 
     this->print("unknown state");

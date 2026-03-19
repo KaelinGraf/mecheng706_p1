@@ -131,5 +131,6 @@ void Initialising::end() {
 }
 
 void Initialising::poll() {
-  tiller_->switchState(State::FIND_CORNER);
+  float y_target = 15.0;
+  tiller_->switchState(State::TILL, &y_target);
 }

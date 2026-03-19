@@ -25,6 +25,7 @@ public:
     inline Name getState() const { return name_; }
 
     virtual void begin() = 0;
+    virtual void begin(void* data){};
     virtual void end() = 0;
     virtual void poll() {};
 

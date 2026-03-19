@@ -23,7 +23,7 @@ public:
     Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom);
     ~Tiller();
 
-    bool switchState(State::Name newState);
+    bool switchState(State::Name newState,void* data = nullptr);
     void pollState();
     inline void setSerialCom(HardwareSerial *serialCom) { serialCom_ = serialCom; };
     template <typename... Args>

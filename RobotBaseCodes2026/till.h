@@ -11,6 +11,8 @@ class Till : public State {
   public:
     Till(Tiller* tiller) : State(State::TILL, tiller), count_(0), last_millis_(0) {
       _gyro_pid = nullptr;
+      _y_pid = nullptr;
+      
     }
     ~Till() {};
     enum SIDE_SENSOR{
@@ -18,9 +20,10 @@ class Till : public State {
       right,
     };
     SIDE_SENSOR _target_sensor;
-    float _target_y;
+    float* _target_y;
     enum SIDE_SENSOR findYRef();
-    void begin() override;
+    void begin() override {};
+    void begin(void* data) override;
     void end() override;
     void poll() override;
   
@@ -28,6 +31,7 @@ class Till : public State {
     int count_;
     unsigned long last_millis_;
     PID<uint16_t>* _gyro_pid;
+    PID<uint16_t>* _y_pid;
 };
 
 

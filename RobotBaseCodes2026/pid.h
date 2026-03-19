@@ -28,12 +28,18 @@ class PID{
     }
     void setFeedForward(float f){_f=f;};
     float getFeedForward() {return _f;};
+    void setKi(float ki){_ki = ki;};
+    float getKi(){return _ki;};
+    void setKd(float kd){_kd = kd;};
+    float getKd(){return _kd;};
+    void setKp(float kp){_kp = kp;};
+    float getKp(){return _kp;};
     void enableIntegral(){_integral_enabled=true;}
     void disableIntegral(){_integral_enabled = false;}
     void setOutputLimits(OutputType min, OutputType max){
       _output_min = min;
       _output_max = max;}
-    OutputType update(float error);
+    OutputType update(float error, float derivative = 0);
     void resetPID(){
       _prev_error = 0.0;
       _error_integral = 0.0;
@@ -44,14 +50,20 @@ class PID{
 };
 
 template<typename OutputType>
-OutputType PID<OutputType>::update(float error){
+OutputType PID<OutputType>::update(float error, float derivative = 0){
+  float d_term = 0;
   uint32_t now = micros();
   float delta_time = (now - _prev_micros)/1000000.0f;
   _prev_micros = now;
   float p_term = _kp * error;
   _error_integral = (_integral_enabled) ? _error_integral + (error * delta_time) : 0.0;
   float i_term = _error_integral * _ki;
-  float d_term = _kd * ((error - _prev_error)/delta_time);
+  if (derivative = 0){
+    d_term = _kd * ((error - _prev_error)/delta_time);
+
+  }else{
+    d_term = _kd * derivative;
+  }
   float control_effort = p_term + i_term + d_term;
 
   if (control_effort > static_cast<float>(_output_max)){
