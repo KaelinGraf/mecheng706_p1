@@ -5,20 +5,25 @@
 #include "turn.h"
 #include "initialising.h"
 
-Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom):_front_left_ir(front_left_ir_pin),_front_right_ir(front_right_ir_pin),_side_left_ir(side_left_ir_pin),_side_right_ir(side_right_ir_pin) {
-  //current_state_= new Initialising(this);
+Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom) {
   serialCom_ = SerialCom;
-  current_state_->begin();
 
   // initilise all states, prevents memory managment issues
   states_[State::INITIALISING] = new Initialising(this);
   states_[State::FIND_CORNER]  = new FindCorner(this);
   states_[State::TILL]         = new Till(this);
   states_[State::TURN]         = new Turn(this);
-  current_state_= states_[State::INITIALISING];
+
+  current_state_ = states_[State::INITIALISING];
+  current_state_->begin();
 
   _gyro = new Gyroscope(bno08x, sensorValue, SerialCom);
   _motors = new driveMotors();
+  _front_left_ir = new ShortRangeIR(front_left_ir_pin);
+  _front_right_ir = new ShortRangeIR(front_right_ir_pin);
+  _side_left_ir = new LongRangeIR(side_left_ir_pin);
+  _side_right_ir = new LongRangeIR(side_right_ir_pin);
+  _ultrasonic = new Ultrasonic(ECHO_PIN, TRIG_PIN, MAX_DIST);
 }
 
 bool Tiller::switchState(State::Name newState, void* data = nullptr) {
@@ -27,14 +32,14 @@ bool Tiller::switchState(State::Name newState, void* data = nullptr) {
         current_state_->end();
     }
 
-    if (!is_battery_voltage_OK()) {
-      // TODO enter fault
-      current_state_ = states_[State::INITIALISING];
-      this->println();
-      this->println("ERROR: BATTERY NOT OK");
-      this->println();
-      return false;
-    }
+    // if (!is_battery_voltage_OK()) {
+    //   // TODO enter fault
+    //   current_state_ = states_[State::INITIALISING];
+    //   this->println();
+    //   this->println("ERROR: BATTERY NOT OK");
+    //   this->println();
+    //   return false;
+    // }
 
     // 2. Look up the new state
     current_state_ = states_[newState];

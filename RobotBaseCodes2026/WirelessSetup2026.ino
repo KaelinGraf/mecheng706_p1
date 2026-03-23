@@ -10,7 +10,7 @@
 // Serial Data output pin
 #define BLUETOOTH_TX 18
 
-#define STARTUP_DELAY 10  // Seconds
+#define STARTUP_DELAY 1   // Seconds
 #define LOOP_DELAY 10     // miliseconds
 #define SAMPLE_DELAY 10   // miliseconds
 
@@ -93,10 +93,6 @@ void readBluetoothSerial() {
 }
 
 void setupWireless() {
-  pinMode(INTERNAL_LED, OUTPUT);
-
-  Serial.begin(115200);
-
   BluetoothSerial.begin(115200);
 
   Serial.print("Ready, waiting for ");
@@ -109,21 +105,21 @@ void setupWireless() {
 void Initialising::begin() {
   Serial.println("INITIALISING....");
   delay(1000);  // One second delay to see the serial string "INITIALISING...."
-  tiller_->println("Enabling Motors...");
-  //enable_motors();
 
-  setupWireless();
+  // ultrasonic
+  pinMode(TRIG_PIN, OUTPUT);
+  digitalWrite(TRIG_PIN, LOW);
+  pinMode(ECHO_PIN, INPUT);
 
-// #ifndef NO_READ_GYRO
-//   tiller->println("Enabling Gyroscope...");
-//   if (!bno08x.begin_I2C() ||
-//       !bno08x.enableReport(SH2_GYROSCOPE_CALIBRATED, 10000)) {
-//     while (1) {
-//       tiller->println("IMU failed");
-//       delay(100);
-//     }
-//   }
-// #endif
+  pinMode(INTERNAL_LED, OUTPUT);
+
+  // IR sensors
+  pinMode(front_right_ir_pin, INPUT);
+  pinMode(front_left_ir_pin, INPUT);
+  pinMode(side_right_ir_pin, INPUT);
+  pinMode(side_left_ir_pin, INPUT);
+
+  // setupWireless();
 }
 
 void Initialising::end() {
@@ -131,6 +127,5 @@ void Initialising::end() {
 }
 
 void Initialising::poll() {
-  float y_target = 15.0;
-  tiller_->switchState(State::TILL, &y_target);
+  tiller_->switchState(State::FIND_CORNER);
 }

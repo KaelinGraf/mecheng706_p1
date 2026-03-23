@@ -20,10 +20,10 @@ class Till : public State {
       right,
     };
     SIDE_SENSOR _target_sensor;
-    float* _target_y;
-    enum SIDE_SENSOR findYRef();
-    void begin() override {};
-    void begin(void* data) override;
+    float _target_y;
+    SIDE_SENSOR findYRef();
+    void begin() override;
+    // void begin(void* data) override;
     void end() override;
     void poll() override;
   

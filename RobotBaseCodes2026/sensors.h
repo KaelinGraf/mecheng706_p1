@@ -30,7 +30,6 @@ class Sensor{
 
 class ShortRangeIR: public Sensor{
   private:
-    uint8_t _read_pin;
     uint32_t _last_millis;
     float _prev_reading;
     float _min_voltage = 0.3;
@@ -51,7 +50,6 @@ class ShortRangeIR: public Sensor{
 
 class LongRangeIR: public Sensor{
   private:
-    uint8_t _read_pin;
     uint32_t _last_millis;
     float _prev_reading;
     float _min_voltage = 0.35;
@@ -71,14 +69,13 @@ class Ultrasonic: public Sensor{
   private:
     uint8_t _echo_pin = ECHO_PIN;
     uint8_t _trigger_pin = TRIG_PIN;
-    uint8_t _max_dist = MAX_DIST;
-    HardwareSerial* _serial_com;
+    unsigned int _max_dist = MAX_DIST;
   
   public:
-    Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, uint8_t max_dist, HardwareSerial* SerialCom);
+    Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, unsigned int max_dist);
 
     float readSensor() override;
-    void applyCalibration(){};
+    inline float applyCalibration(float adc_voltage) override {return adc_voltage;};
     
 };
 
@@ -105,7 +102,7 @@ class Gyroscope: public Sensor{
         }}
     };
     float readSensor(bool apply_filter = false);
-    float applyCalibration(float adc_voltage) override {return -1.0;};
+    inline float applyCalibration(float adc_voltage) override {return adc_voltage;};
 
     
 };

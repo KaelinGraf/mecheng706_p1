@@ -48,11 +48,12 @@ float ShortRangeIR::applyCalibration(float adc_voltage){
 }
 
 float LongRangeIR::readSensor(){
-  if ((millis() - _last_millis)<=LONGRANGE_LATENCY){ //in the event of "double read" 
+  long curr_ms = millis();
+  if ((curr_ms - _last_millis)<=LONGRANGE_LATENCY){ //in the event of "double read" 
     return _prev_reading;
   }
   _prev_reading = applyCalibration(readVoltage(_read_pin));
-  _last_millis = millis();
+  _last_millis = curr_ms;
   return _prev_reading;
 }
 
@@ -73,9 +74,10 @@ float LongRangeIR::applyCalibration(float adc_voltage){
 }
 
 
-Ultrasonic::Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, uint8_t max_dist, HardwareSerial* SerialCom) 
-: Sensor(uint8_t(255)),  _echo_pin(echo_pin), _trigger_pin(trigger_pin), _max_dist(max_dist),_serial_com(SerialCom){
+Ultrasonic::Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, unsigned int max_dist) 
+: Sensor(uint8_t(255)),  _echo_pin(echo_pin), _trigger_pin(trigger_pin), _max_dist(max_dist){
 };
+
 float Ultrasonic::readSensor() {
   unsigned long t1;
   unsigned long t2;
@@ -95,9 +97,9 @@ float Ultrasonic::readSensor() {
     pulse_width = t2 - t1;
     if (pulse_width > (_max_dist + 1000)) {
       if (DIAGNOSTICS){
-        _serial_com->println("HC-SR04: NOT found");
+        Serial.println("HC-SR04: NOT found");
       }
-      return -1;
+      return -2.0;
     }
   }
 
@@ -110,13 +112,12 @@ float Ultrasonic::readSensor() {
     pulse_width = t2 - t1;
     if (pulse_width > (_max_dist + 1000)) {
       if (DIAGNOSTICS){
-        _serial_com->println("HC-SR04: Out of range");
+        Serial.println("HC-SR04: Out of range");
       }
-      return;
+      return -1.0;
     }
   }
 
-  t2 = micros();
   pulse_width = t2 - t1;
 
   // Calculate distance in centimeters and inches. The constants
@@ -128,11 +129,7 @@ float Ultrasonic::readSensor() {
   // Print out results
   if (DIAGNOSTICS){
     if (pulse_width > _max_dist) {
-      _serial_com->println("HC-SR04: Out of range");
-    } else {
-      _serial_com->print("HC-SR04:");
-      _serial_com->print(cm);
-      _serial_com->println("cm");
+      Serial.println("HC-SR04: Out of range");
     }
   }
   return cm;
