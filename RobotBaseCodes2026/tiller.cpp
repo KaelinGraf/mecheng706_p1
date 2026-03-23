@@ -32,14 +32,14 @@ bool Tiller::switchState(State::Name newState, void* data = nullptr) {
         current_state_->end();
     }
 
-    // if (!is_battery_voltage_OK()) {
-    //   // TODO enter fault
-    //   current_state_ = states_[State::INITIALISING];
-    //   this->println();
-    //   this->println("ERROR: BATTERY NOT OK");
-    //   this->println();
-    //   return false;
-    // }
+    if (!is_battery_voltage_OK()) {
+      // TODO enter fault
+      current_state_ = states_[State::INITIALISING];
+      this->println();
+      this->println("ERROR: BATTERY NOT OK");
+      this->println();
+      return false;
+    }
 
     // 2. Look up the new state
     current_state_ = states_[newState];
