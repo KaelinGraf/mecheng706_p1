@@ -5,15 +5,15 @@
 #include "servo_control.h"
 #include "pid.h"
 
+#define NUM_Y_TGTS 3
+
 class Tiller {
 private:
     State *current_state_;
     State *states_[State::NUM_STATES];
     HardwareSerial *serialCom_;
-    float y_tgts_[3] = {15.0, 30, 45};
+    float y_tgts_[NUM_Y_TGTS] = {15.0, 30.0, 45.0};
     unsigned int curr_y_idx_ = 0;
-
-
 
 public:
     ShortRangeIR* _front_left_ir;
@@ -35,5 +35,5 @@ public:
     inline void println(Args... args) { serialCom_->println(args...); }
     bool is_battery_voltage_OK();
     inline float get_y_tgt() { return y_tgts_[curr_y_idx_]; }
-    inline void inc_y_tgt() { curr_y_idx_++; }
+    inline void inc_y_tgt() { if (curr_y_idx_ < NUM_Y_TGTS-1) curr_y_idx_++; }
 };
