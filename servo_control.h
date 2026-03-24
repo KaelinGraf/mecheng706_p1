@@ -9,13 +9,13 @@
 const int chassis_scale = (L_len+l_len);
 
 
-const int left_front_multis[3] = {-1, 1, chassis_scale};
+const int left_front_multis[3] = {-1, 1, 1};
 
-const int right_front_multis[3] = {1, 1, chassis_scale};
+const int right_front_multis[3] = {1, 1, 1};
 
-const int left_rear_multis[3] = {-1, -1, chassis_scale};
+const int left_rear_multis[3] = {-1, -1, 1};
 
-const int right_rear_multis[3] = {1, -1, chassis_scale};
+const int right_rear_multis[3] = {1, -1, 1};
 
 
 enum motorName{

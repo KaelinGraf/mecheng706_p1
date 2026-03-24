@@ -22,7 +22,7 @@ void Till::begin() {
   ultrasonic_count_ = 0;
 
   _gyro_pid = new PID<float>(50.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
-  _y_pid = new PID<float>(10.0, 0.0, 0.0, 0.0, false, -150.0, 150.0);
+  _y_pid = new PID<float>(10.0, 0.0, 0.0, 0.0, false, -75.0, 75.0);
   
 }
 
@@ -52,7 +52,7 @@ void Till::poll() {
       y_control_effort = -_y_pid->update(y_error); // move left to increase distance to right wall
   }
   
-  float vx = -50.0; // Constant backward speed
+  float vx = -150.0; // Constant backward speed (dominant axis)
   tiller_->_motors->writeAllMotors(vx, y_control_effort, angle_control_effort);
   
   float u_dist = tiller_->_ultrasonic->readSensor();

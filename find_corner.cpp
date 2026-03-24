@@ -30,8 +30,11 @@ void FindCorner::begin() {
 
   if (_angle_pid) delete _angle_pid;
   if (_x_pid) delete _x_pid;
-  _angle_pid = new PID<float>(4.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
-  _x_pid = new PID<float>(8.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
+  if (_rotate_pid) delete _rotate_pid;
+  _angle_pid = new PID<float>(8.0, 0.00005, 0.0, 0.0, true, -100.0, 100.0);
+  _x_pid = new PID<float>(4.0, 0.00005, 0.0, 0.0, true, -100.0, 100.0);
+  _rotate_pid = new PID<float>(50.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
+  _rotate_phase = 0;
 }
 
 void FindCorner::end() {
@@ -156,8 +159,9 @@ void FindCorner::poll() {
       // Transition when both distance and angle errors are within tolerance
       if (fl > 0.0 && fr > 0.0 &&
           fabs(dist_avg - TARGET_DISTANCE_CM) < ALIGN_TOLERANCE_CM &&
-          fabs(angle_err) < 0.5) {
+          fabs(angle_err) < 1.5) {
         tiller_->_motors->writeAllMotors(0, 0, 0);
+        tiller_->_gyro->resetAngle();  // Reset gyro so rotation PID starts from 0
         hs.stage = HC_CHECK_US;
         tiller_->println("Homing: perpendicular and at target distance");
       }
@@ -184,96 +188,105 @@ void FindCorner::poll() {
     }
 
     case HC_ROTATE_MOVE: {
-      tiller_->println("Homing: choosing side (left/right) using long-range IRs");
-      float l = tiller_->_side_left_ir->readSensor();
-      float r = tiller_->_side_right_ir->readSensor();
-      
-      tiller_->print("Side L=");
-      tiller_->print(l);
-      tiller_->print(" R=");
-      tiller_->println(r);
-      
-      bool l_valid = (l > 0 && l < 1000); 
-      bool r_valid = (r > 0 && r < 1000); 
-      
-      if (!l_valid && !r_valid) {
-        rotateCW(200);
-        delay(ROTATE_90_MS);
-        stopDrive();
-      } else {
-        if (l_valid && (!r_valid || l < r)) {
-          rotateCCW(200);
-          delay(ROTATE_90_MS);
-          stopDrive();
-        } else {
-          rotateCW(200);
-          delay(ROTATE_90_MS);
-          stopDrive();
+      if (_rotate_phase == 0) {
+        // Phase 0: Determine direction and PID-rotate 90 degrees
+        // On first entry, determine rotation direction from side IRs
+        if (_rotate_target == 0.0) {
+          float l = tiller_->_side_left_ir->readSensor();
+          float r = tiller_->_side_right_ir->readSensor();
+          bool l_valid = (l > 0 && l < 1000);
+          bool r_valid = (r > 0 && r < 1000);
+
+          // Rotate toward the closer wall
+          if (l_valid && (!r_valid || l < r)) {
+            _rotate_target = PI / 2.0;   // CCW 90 deg (positive = CCW)
+            tiller_->println("Homing: rotating CCW toward left wall");
+          } else {
+            _rotate_target = -PI / 2.0;  // CW 90 deg
+            tiller_->println("Homing: rotating CW toward right wall");
+          }
+          tiller_->_gyro->resetAngle();
+          _rotate_pid->resetPID();
         }
-      }
-      
-      tiller_->println("Homing: moving toward chosen wall");
-      unsigned long tstart = millis();
-      while ((millis() - tstart) < 8000) {
-        forward(200);
-        delay(300);
-        stopDrive();
+
+        float current_angle = tiller_->_gyro->getAngle();
+        float error = _rotate_target - current_angle;
+        float vtheta = _rotate_pid->update(error);
         
+        static unsigned long last_gyro_print = 0;
+        if (millis() - last_gyro_print > 100) {
+          tiller_->print("Gyro Angle: ");
+          tiller_->print(current_angle);
+          tiller_->print(" | Target: ");
+          tiller_->print(_rotate_target);
+          tiller_->print(" | Error: ");
+          tiller_->println(error);
+          last_gyro_print = millis();
+        }
+
+        tiller_->_motors->writeAllMotors(0, 0, vtheta);
+
+        if (fabs(error) < 0.08) {  // ~4.5 degrees tolerance
+          tiller_->_motors->writeAllMotors(0, 0, 0);
+          _rotate_phase = 1;
+          tiller_->println("Homing: rotation complete, driving to wall");
+        }
+      } else {
+        // Phase 1: Drive forward until side sensor reads target distance
         float side = tiller_->_side_left_ir->readSensor();
         if (side <= 0) {
-          side = tiller_->_side_right_ir->readSensor(); 
+          side = tiller_->_side_right_ir->readSensor();
         }
-                                              
+
         if (side > 0 && fabs(side - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM) {
+          tiller_->_motors->writeAllMotors(0, 0, 0);
           tiller_->println("Homing: side reached target distance");
           hs.stage = HC_DONE;
           return;
         }
+
+        // Keep driving forward
+        forward(180);
       }
-      tiller_->println("Homing: timed out moving to side wall, aborting");
-      hs.stage = HC_ABORT;
       return;
     }
 
     case HC_STRAFE_ALIGN: {
-      tiller_->println("Homing: strafing to closest wall (long-side case)");
+      // PID-based continuous strafe (polled each cycle)
       float l = tiller_->_side_left_ir->readSensor();
       float r = tiller_->_side_right_ir->readSensor();
-      
-      bool l_valid = (l > 0 && l < 1000); 
-      bool r_valid = (r > 0 && r < 1000); 
-      
+      bool l_valid = (l > 0 && l < 1000);
+      bool r_valid = (r > 0 && r < 1000);
+
+      // Maintain heading with gyro
+      float heading = tiller_->_gyro->getAngle();
+      float vtheta = _angle_pid->update(0.0 - heading);
+
+      float vy = 0.0;
+      bool at_target = false;
+
       if (l_valid && (!r_valid || l < r)) {
-        unsigned long t0 = millis();
-        while ((millis() - t0) < 6000) {
-          strafeLeft(200);
-          delay(STRAFE_BURST_MS);
-          stopDrive();
-          float v = tiller_->_side_left_ir->readSensor();
-          if (v > 0 && fabs(v - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM) {
-            hs.stage = HC_DONE;
-            return;
-          }
-        }
+        // Strafe toward left wall using PID
+        float y_error = TARGET_DISTANCE_CM - l;
+        vy = -_x_pid->update(y_error);
+        at_target = (fabs(l - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM);
       } else if (r_valid) {
-        unsigned long t0 = millis();
-        while ((millis() - t0) < 6000) {
-          strafeRight(200);
-          delay(STRAFE_BURST_MS);
-          stopDrive();
-          float v = tiller_->_side_right_ir->readSensor();
-          if (v > 0 && fabs(v - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM) {
-            hs.stage = HC_DONE;
-            return;
-          }
-        }
+        // Strafe toward right wall using PID
+        float y_error = TARGET_DISTANCE_CM - r;
+        vy = _x_pid->update(y_error);
+        at_target = (fabs(r - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM);
       } else {
-        tiller_->println("Homing: no valid side IRs, assuming done");
-        hs.stage = HC_DONE;
-        return;
+        // Both IRs out of range — blind strafe right until a sensor picks up
+        vy = 100.0;
       }
-      tiller_->println("Homing: strafe timed out, aborting");
-      hs.stage = HC_ABORT;
+
+      tiller_->_motors->writeAllMotors(0, vy, vtheta);
+
+      if (at_target) {
+        tiller_->_motors->writeAllMotors(0, 0, 0);
+        hs.stage = HC_DONE;
+        tiller_->println("Homing: strafe reached target distance");
+      }
       return;
     }
 

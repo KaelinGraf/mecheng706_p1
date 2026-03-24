@@ -32,9 +32,15 @@
 #include <Adafruit_BNO08x.h> //Need for Gyroscope
 #include "mappings.h"
 #include <Servo.h> //Need for Servo pulse output
+#include <SoftwareSerial.h>
 #include "pid.h"
 #include "servo_control.h"
 #include "tiller.h"
+
+// Bluetooth Setup matching WirelessSetup2026.ino
+#define BLUETOOTH_RX 19
+#define BLUETOOTH_TX 18
+SoftwareSerial BluetoothSerial(BLUETOOTH_RX, BLUETOOTH_TX);
 
 // Gyroscope initialisation
 Adafruit_BNO08x bno08x(-1);
@@ -75,8 +81,10 @@ void setup(void)
 
   // Setup the Serial port and pointer, the pointer allows switching the debug
   // info through the USB port(Serial) or Bluetooth port(Serial1) with ease.
+  BluetoothSerial.begin(115200);
   
   tiller = new Tiller(&bno08x,&sensorValue, &Serial);
+  tiller->setBluetoothSerial(&BluetoothSerial); // Enable dual-printing to Bluetooth
 
   delay(1000); // settling time but no really needed
 }

@@ -16,10 +16,13 @@ class FindCorner : public State {
       HC_ABORT
     };
 
-    FindCorner(Tiller* tiller) : State(State::FIND_CORNER, tiller), _angle_pid(nullptr), _x_pid(nullptr) {}
+    FindCorner(Tiller* tiller) : State(State::FIND_CORNER, tiller),
+      _angle_pid(nullptr), _x_pid(nullptr), _rotate_pid(nullptr),
+      _rotate_target(0.0), _rotate_phase(0) {}
     ~FindCorner() {
       if (_angle_pid) delete _angle_pid;
       if (_x_pid) delete _x_pid;
+      if (_rotate_pid) delete _rotate_pid;
     };
 
     void begin() override;
@@ -29,6 +32,9 @@ class FindCorner : public State {
   private:
     PID<float>* _angle_pid;
     PID<float>* _x_pid;
+    PID<float>* _rotate_pid;
+    float _rotate_target;  // target angle in radians (±PI/2)
+    int _rotate_phase;     // 0 = rotating, 1 = driving forward
 };
 
 

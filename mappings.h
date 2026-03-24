@@ -41,7 +41,7 @@
 #define gyro_omega_0_ki 0
 #define gyro_omega_0_kd 0
 
-#define y_dist_pid_kp 10
+#define y_dist_pid_kp 3
 #define y_dist_pid_ki 0
 #define y_dist_pid_kd 0
 

@@ -48,7 +48,7 @@ void Turn::poll() {
         vx = _x_pid->update(dist_avg - 15.0); 
         vtheta = _angle_pid->update(angle_err - 0.0); 
         
-        if (abs(dist_avg - 15.0) < 1.0 && abs(angle_err) < 0.5) {
+        if (abs(dist_avg - 15.0) < 2.0 && abs(angle_err) < 1.5) {
              tiller_->_gyro->resetAngle(); 
              tiller_->switchState(State::STRAFE);
              return;
