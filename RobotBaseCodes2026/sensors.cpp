@@ -73,11 +73,20 @@ float LongRangeIR::applyCalibration(float adc_voltage){
   
 }
 
+void Ultrasonic::initUltrasonic(){
+  runUltrasonic();
+}
 
-Ultrasonic::Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, unsigned int max_dist) 
+void Ultrasonic::runUltrasonic(){
+  digitalWrite(_trigger_pin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(_trigger_pin, LOW);
+}
+
+Ultrasonic::Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, unsigned long max_dist) 
 : Sensor(uint8_t(255)),  _echo_pin(echo_pin), _trigger_pin(trigger_pin), _max_dist(max_dist){
+  initUltrasonic();
 };
-
 float Ultrasonic::readSensor() {
   unsigned long t1;
   unsigned long t2;
@@ -85,11 +94,7 @@ float Ultrasonic::readSensor() {
   float cm;
   float inches;
 
-  // Hold the trigger pin high for at least 10 us
-  digitalWrite(_trigger_pin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(_trigger_pin, LOW);
-
+  /*
   // Wait for pulse on echo pin
   t1 = micros();
   while (digitalRead(_echo_pin) == 0) {
@@ -97,9 +102,9 @@ float Ultrasonic::readSensor() {
     pulse_width = t2 - t1;
     if (pulse_width > (_max_dist + 1000)) {
       if (DIAGNOSTICS){
-        Serial.println("HC-SR04: NOT found");
+        _serial_com->println("HC-SR04: NOT found");
       }
-      return -2.0;
+      return -1;
     }
   }
 
@@ -112,12 +117,15 @@ float Ultrasonic::readSensor() {
     pulse_width = t2 - t1;
     if (pulse_width > (_max_dist + 1000)) {
       if (DIAGNOSTICS){
-        Serial.println("HC-SR04: Out of range");
+        _serial_com->println("HC-SR04: Out of range");
       }
-      return -1.0;
+      return;
     }
   }
+  */
 
+  t2 = getReturnTime();
+  t1 = getSentTime();
   pulse_width = t2 - t1;
 
   // Calculate distance in centimeters and inches. The constants
@@ -126,12 +134,26 @@ float Ultrasonic::readSensor() {
   cm = pulse_width / 58.0;
   inches = pulse_width / 148.0;
 
+  if (t2 < t1){
+    Serial.println("UltraSonic Out of sync, return last cm");
+    Serial.print("HC-SR04:");
+    Serial.print(getLastCm());
+    Serial.println("cm");
+    return getLastCm();
+  }
+
   // Print out results
   if (DIAGNOSTICS){
     if (pulse_width > _max_dist) {
       Serial.println("HC-SR04: Out of range");
+    } else {
+      Serial.print("HC-SR04:");
+      Serial.print(cm);
+      Serial.println("cm");
     }
   }
+  runUltrasonic();
+  setLastCm(cm);
   return cm;
 };
 

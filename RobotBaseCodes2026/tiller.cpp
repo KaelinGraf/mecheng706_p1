@@ -5,6 +5,20 @@
 #include "turn.h"
 #include "initialising.h"
 
+volatile Ultrasonic* ultrasonicISR = nullptr;
+ISR(INT4_vect) {
+  if (!ultrasonicISR) return; // safety check
+  // Check if the pin is HIGH (Rising Edge)
+  if (digitalRead(2)) {
+    ultrasonicISR->setSentTime(micros());
+  } 
+  // If it's not HIGH, it must be LOW (Falling Edge)
+  else {
+    ultrasonicISR->setReturnTime(micros());
+    ultrasonicISR->runUltrasonic();
+  }
+}
+
 Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom) {
   serialCom_ = SerialCom;
 
@@ -24,6 +38,7 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
   _side_left_ir = new LongRangeIR(side_left_ir_pin);
   _side_right_ir = new LongRangeIR(side_right_ir_pin);
   _ultrasonic = new Ultrasonic(ECHO_PIN, TRIG_PIN, MAX_DIST);
+  ultrasonicISR = _ultrasonic;
 }
 
 bool Tiller::switchState(State::Name newState, void* data = nullptr) {

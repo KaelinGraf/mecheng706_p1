@@ -65,6 +65,9 @@ int pos = 0;
 Tiller *tiller = nullptr;
 void setup(void)
 {
+  EICRB |= (1 << ISC40);   // ISC41 = 0, ISC40 = 1 → ANY CHANGE
+  EICRB &= ~(1 << ISC41);
+  EIMSK |= (1 << INT4);
   Serial.begin(115200);
   // turret_motor.attach(11);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -83,7 +86,9 @@ void setup(void)
 
 void loop(void) // main loop
 {
-  tiller->pollState();
+  //tiller->pollState();
+  tiller->_ultrasonic->readSensor();
+  delay(1000);
 }
 
 void printBluetooth()
