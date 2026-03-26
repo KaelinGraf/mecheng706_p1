@@ -24,11 +24,13 @@ void Till::begin() {
   _gyro_pid = new PID<float>(50.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
   _y_pid = new PID<float>(20.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
 
-  // kalman stuff here
   float initial_y = (_target_sensor == SIDE_SENSOR::left) ? tiller_->_side_left_ir->readSensor() : tiller_->_side_right_ir->readSensor();
   _prev_y_est = (initial_y > 0.0) ? initial_y : _target_y;
+
+#if USE_KALMAN
   _last_y_var = 1.0;
   _last_y_millis = millis();
+#endif
 }
 
 void Till::end() {
@@ -41,11 +43,10 @@ void Till::poll() {
   float y_control_effort;
   float current_y;
   float y_error;
-  bool useKalmanFilter = true;
   
   float heading = tiller_->_gyro->getAngle();
 
-  current_y = getYDist(useKalmanFilter);
+  current_y = getYDist();
 
   y_error = _target_y - current_y;
 
@@ -75,9 +76,11 @@ void Till::poll() {
   }
 }
 
-float Till::getFilteredY() {
+float Till::getYDist() {
   // Get raw reading based on active target sensor
   float raw_data = (_target_sensor == SIDE_SENSOR::left) ? tiller_->_side_left_ir->readSensor() : tiller_->_side_right_ir->readSensor();
+
+#if USE_KALMAN
 
   // Handle out-of-range fallback
   if (raw_data < 0.0) {
@@ -99,7 +102,13 @@ float Till::getFilteredY() {
   _last_y_var = a_post_var;
   _last_y_millis = millis();
   
-  return _prev_y_est;
+#else
+  if (raw_data < 0.0) {
+    return _prev_y_est;
+  }
+  _prev_y_est = raw_data;
+#endif
+  return raw_data;
 }
 
 Till::SIDE_SENSOR Till::findYRef(){

@@ -5,6 +5,8 @@
 #include "state.h"
 #include "pid.h"
 
+#define USE_KALMAN true
+
 class Till : public State {
   public:
     Till(Tiller* tiller) : State(State::TILL, tiller), count_(0), last_millis_(0) {
@@ -34,11 +36,13 @@ class Till : public State {
     PID<float>* _gyro_pid;
     PID<float>* _y_pid;
     int ultrasonic_count_;
+
     float _prev_y_est;
+#if USE_KALMAN
     float _last_y_var;
     unsigned long _last_y_millis;
-
-    float getFilteredY(); 
+#endif
+    float getYDist(); 
 };
 
 
