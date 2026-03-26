@@ -5,8 +5,6 @@
 #include "state.h"
 #include "pid.h"
 
-
-
 class Till : public State {
   public:
     Till(Tiller* tiller) : State(State::TILL, tiller), count_(0), last_millis_(0) {
@@ -24,16 +22,23 @@ class Till : public State {
     float _target_y;
     SIDE_SENSOR findYRef();
     void begin() override;
-    // void begin(void* data) override;
     void end() override;
     void poll() override;
   
   private:
+    float process_noise_ = 0.4; 
+    float sensor_noise_ = 2;  
+
     int count_;
     unsigned long last_millis_;
     PID<float>* _gyro_pid;
     PID<float>* _y_pid;
     int ultrasonic_count_;
+    float _prev_y_est;
+    float _last_y_var;
+    unsigned long _last_y_millis;
+
+    float getFilteredY(); 
 };
 
 
