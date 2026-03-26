@@ -6,10 +6,10 @@
 #include "tiller.h"
 
 // Homing internal parameters (tunable)
-static const float TARGET_DISTANCE_CM = 15.0f;  // desired distance from wall
+static const float TARGET_DISTANCE_CM = 16.0f;  // desired distance from wall
 static const float ALIGN_TOLERANCE_CM = 2.0f;   // front sensors equal within this
 static const float FRONT_DETECT_CM = 30.0f;     // initial detection threshold
-static const float US_SHORT_THRESHOLD_CM = 100.0f;  // threshold to classify short side
+static const float US_SHORT_THRESHOLD_CM = 150.0f;  // threshold to classify short side
 
 // timing constants for open-loop moves (ms) - Approximate need to be tuned.
 static const unsigned long FORWARD_BURST_MS = 300;
@@ -31,9 +31,9 @@ void FindCorner::begin() {
   if (_angle_pid) delete _angle_pid;
   if (_x_pid) delete _x_pid;
   if (_rotate_pid) delete _rotate_pid;
-  _angle_pid = new PID<float>(8.0, 0.00005, 0.0, 0.0, true, -100.0, 100.0);
-  _x_pid = new PID<float>(4.0, 0.00005, 0.0, 0.0, true, -100.0, 100.0);
-  _rotate_pid = new PID<float>(50.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
+  _angle_pid = new PID<float>(8.0, 0.005, 0.0, 0.0, false, -100.0, 100.0);
+  _x_pid = new PID<float>(4.0, 0.0005, 0.0, 0.0, true, -100.0, 100.0);
+  _rotate_pid = new PID<float>(60.0, 2.0, 0.0, 0.0, true, -100.0, 100.0);
   _rotate_phase = 0;
 }
 
@@ -224,29 +224,30 @@ void FindCorner::poll() {
           last_gyro_print = millis();
         }
 
-        tiller_->_motors->writeAllMotors(0, 0, vtheta);
+        tiller_->_motors->writeAllMotors(0, 0, -vtheta);
 
-        if (fabs(error) < 0.08) {  // ~4.5 degrees tolerance
+        if (fabs(error) < 0.12) {  // ~4.5 degrees tolerance
           tiller_->_motors->writeAllMotors(0, 0, 0);
           _rotate_phase = 1;
           tiller_->println("Homing: rotation complete, driving to wall");
         }
       } else {
-        // Phase 1: Drive forward until side sensor reads target distance
-        float side = tiller_->_side_left_ir->readSensor();
-        if (side <= 0) {
-          side = tiller_->_side_right_ir->readSensor();
-        }
+        // Phase 1: Drive forward until front sensors read target distance
+        float fl = tiller_->_front_left_ir->readSensor();
+        float fr = tiller_->_front_right_ir->readSensor();
+        float front_dist = (fl > 0 && fr > 0) ? (fl + fr) / 2.0 : -1.0;
 
-        if (side > 0 && fabs(side - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM) {
+        if (front_dist > 0 && fabs(front_dist - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM) {
           tiller_->_motors->writeAllMotors(0, 0, 0);
-          tiller_->println("Homing: side reached target distance");
+          tiller_->println("Homing: front reached target distance in corner");
           hs.stage = HC_DONE;
           return;
         }
 
-        // Keep driving forward
-        forward(180);
+        // Keep driving forward while maintaining heading
+        float heading = tiller_->_gyro->getAngle();
+        float vtheta = _rotate_pid->update(_rotate_target - heading);
+        tiller_->_motors->writeAllMotors(150, 0, -vtheta);
       }
       return;
     }
@@ -268,7 +269,7 @@ void FindCorner::poll() {
       if (l_valid && (!r_valid || l < r)) {
         // Strafe toward left wall using PID
         float y_error = TARGET_DISTANCE_CM - l;
-        vy = -_x_pid->update(y_error);
+        vy = -_x_pid->update(y_error);  
         at_target = (fabs(l - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM);
       } else if (r_valid) {
         // Strafe toward right wall using PID

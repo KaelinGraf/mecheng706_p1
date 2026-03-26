@@ -8,9 +8,9 @@ void Turn::begin() {
   count_ = 0;
   _phase = 0;
   
-  if (!_turn_pid) _turn_pid = new PID<float>(50.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
-  if (!_x_pid) _x_pid = new PID<float>(10.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
-  if (!_angle_pid) _angle_pid = new PID<float>(15.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
+  if (!_turn_pid) _turn_pid = new PID<float>(60.0, 2.0, 0.0, 0.0, true, -100.0, 100.0);
+  if (!_x_pid) _x_pid = new PID<float>(4.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
+  if (!_angle_pid) _angle_pid = new PID<float>(8.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
   
   tiller_->_gyro->resetAngle();
 }
@@ -26,7 +26,7 @@ void Turn::poll() {
         // TURN_180 phase
         float current_angle = tiller_->_gyro->getAngle();
         float target_angle = PI; 
-        float error = target_angle - current_angle;
+        float error = target_angle - fabs(current_angle);
         
         vtheta = _turn_pid->update(error);
         

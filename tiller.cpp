@@ -1,3 +1,4 @@
+#include "Arduino.h"
 #include "HardwareSerial.h"
 #include "tiller.h"
 #include "find_corner.h"
@@ -74,13 +75,16 @@ void Tiller::pollState() {
 };
 
 void Tiller::testSensors(){
-  print("gyro:");
+  print("gyro: rad, itegral");
   println(_gyro->readSensor());
+  println(_gyro->getAngle());
+
   print("IR senors (lf,rf,ls,rs):");
   println(_front_left_ir->readSensor());
   println(_front_right_ir->readSensor());
   println(_side_left_ir->readSensor());
   println(_side_right_ir->readSensor());
+  delay(200);
 
 }
 

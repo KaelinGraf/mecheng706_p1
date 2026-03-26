@@ -91,8 +91,8 @@ void setup(void)
 
 void loop(void) // main loop
 {
-  //tiller->pollState();
-  tiller->testSensors();
+  tiller->pollState();
+  //tiller->testSensors();
 }
 
 void printBluetooth()
