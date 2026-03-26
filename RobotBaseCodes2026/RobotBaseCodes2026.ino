@@ -81,7 +81,7 @@ void setup(void)
   
   tiller = new Tiller(&bno08x,&sensorValue, &Serial);
 
-  delay(1000); // settling time but no really needed
+  delay(500); // settling time but no really needed
 }
 
 void loop(void) // main loop

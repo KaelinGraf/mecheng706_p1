@@ -10,6 +10,8 @@ ISR(INT4_vect) {
   if (!ultrasonicISR) return; // safety check
   // Check if the pin is HIGH (Rising Edge)
   if (digitalRead(2)) {
+    unsigned long last_t1 = ultrasonicISR->getSentTime();
+    ultrasonicISR->setLastSent(last_t1);
     ultrasonicISR->setSentTime(micros());
   } 
   // If it's not HIGH, it must be LOW (Falling Edge)

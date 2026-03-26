@@ -72,7 +72,7 @@ class Ultrasonic: public Sensor{
     unsigned int _max_dist = MAX_DIST;
     unsigned long sent_time = 0;
     unsigned long return_time = 0;
-    float last_cm = 0;
+    unsigned long _last_sent = 0;
   
   public:
     Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, unsigned long max_dist);
@@ -85,8 +85,8 @@ class Ultrasonic: public Sensor{
     unsigned long getSentTime(){return sent_time;};
     void setReturnTime(unsigned long t2){return_time = t2;};
     unsigned long getReturnTime(){return return_time;};
-    void setLastCm(float cm){last_cm = cm;};
-    float getLastCm(){return last_cm;};
+    void setLastSent(unsigned long last_sent){_last_sent = last_sent;};
+    unsigned long getLastSent(){return _last_sent;};
     
 };
 

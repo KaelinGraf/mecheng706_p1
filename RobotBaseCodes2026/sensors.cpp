@@ -126,6 +126,12 @@ float Ultrasonic::readSensor() {
 
   t2 = getReturnTime();
   t1 = getSentTime();
+
+  if (t2 < t1){
+    Serial.println("UltraSonic Out of sync, return last cm");
+    t1 = getLastSent();
+  }
+
   pulse_width = t2 - t1;
 
   // Calculate distance in centimeters and inches. The constants
@@ -133,14 +139,6 @@ float Ultrasonic::readSensor() {
   //of sound in air at sea level (~340 m/s).
   cm = pulse_width / 58.0;
   inches = pulse_width / 148.0;
-
-  if (t2 < t1){
-    Serial.println("UltraSonic Out of sync, return last cm");
-    Serial.print("HC-SR04:");
-    Serial.print(getLastCm());
-    Serial.println("cm");
-    return getLastCm();
-  }
 
   // Print out results
   if (DIAGNOSTICS){
@@ -153,7 +151,6 @@ float Ultrasonic::readSensor() {
     }
   }
   runUltrasonic();
-  setLastCm(cm);
   return cm;
 };
 
