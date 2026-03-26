@@ -6,6 +6,24 @@
 #include "strafe.h"
 #include "initialising.h"
 
+volatile Ultrasonic* ultrasonicISR = nullptr;
+ISR(INT4_vect) {
+  if (!ultrasonicISR) {
+    Serial.println("error");
+    return;} // safety check
+  // Check if the pin is HIGH (Rising Edge)
+  if (digitalRead(2)) {
+    unsigned long last_t1 = ultrasonicISR->getSentTime();
+    ultrasonicISR->setLastSent(last_t1);
+    ultrasonicISR->setSentTime(micros());
+  } 
+  // If it's not HIGH, it must be LOW (Falling Edge)
+  else {
+    ultrasonicISR->setReturnTime(micros());
+    ultrasonicISR->runUltrasonic();
+  }
+}
+
 Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom) {
   serialCom_ = SerialCom;
 
@@ -17,6 +35,7 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
   _side_left_ir = new LongRangeIR(side_left_ir_pin);
   _side_right_ir = new LongRangeIR(side_right_ir_pin);
   _ultrasonic = new Ultrasonic(ECHO_PIN, TRIG_PIN, MAX_DIST);
+  ultrasonicISR = _ultrasonic;
   _motors->attatchAll();
 
   // Initialise all states, prevents memory management issues
@@ -74,6 +93,7 @@ void Tiller::pollState() {
 };
 
 void Tiller::testSensors(){
+  /*  
   print("gyro:");
   println(_gyro->readSensor());
   print("IR senors (lf,rf,ls,rs):");
@@ -81,6 +101,10 @@ void Tiller::testSensors(){
   println(_front_right_ir->readSensor());
   println(_side_left_ir->readSensor());
   println(_side_right_ir->readSensor());
+  */
+
+  println(_ultrasonic->readSensor());
+  delay(1000);
 
 }
 
