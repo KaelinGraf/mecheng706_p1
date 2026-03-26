@@ -23,7 +23,7 @@
 
 volatile int32_t Counter = 1;
 
-SoftwareSerial BluetoothSerial(BLUETOOTH_RX, BLUETOOTH_TX);
+//SoftwareSerial BluetoothSerial(BLUETOOTH_RX, BLUETOOTH_TX);
 
 void delaySeconds(int TimedDelaySeconds) {
   for (int i = 0; i < TimedDelaySeconds; i++) {

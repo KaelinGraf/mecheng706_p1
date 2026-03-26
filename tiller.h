@@ -1,3 +1,4 @@
+#include "SoftwareSerial.h"
 #include <stdint.h>
 #include <Arduino.h>
 #include "state.h"
@@ -12,7 +13,7 @@ private:
     State *current_state_;
     State *states_[State::NUM_STATES];
     HardwareSerial *serialCom_;
-    Stream *btSerial_ = nullptr;
+    SoftwareSerial *btSerial_ = nullptr;
     float y_tgts_[NUM_Y_TGTS] = {15.0, 30.0, 45.0};
     unsigned int curr_y_idx_ = 0;
 
@@ -26,11 +27,11 @@ public:
     driveMotors* _motors;
     Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom);
     ~Tiller();
-
+    void testSensors();
     bool switchState(State::Name newState,void* data = nullptr);
     void pollState();
     inline void setSerialCom(HardwareSerial *serialCom) { serialCom_ = serialCom; };
-    inline void setBluetoothSerial(Stream *btSerial) { btSerial_ = btSerial; };
+    inline void setBluetoothSerial(SoftwareSerial *btSerial) { btSerial_ = btSerial; };
     template <typename... Args>
     inline void print(Args... args) { 
         if (serialCom_) serialCom_->print(args...); 

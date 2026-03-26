@@ -73,6 +73,17 @@ void Tiller::pollState() {
   }
 };
 
+void Tiller::testSensors(){
+  print("gyro:");
+  println(_gyro->readSensor());
+  print("IR senors (lf,rf,ls,rs):");
+  println(_front_left_ir->readSensor());
+  println(_front_right_ir->readSensor());
+  println(_side_left_ir->readSensor());
+  println(_side_right_ir->readSensor());
+
+}
+
 bool Tiller::is_battery_voltage_OK() {
   static byte Low_voltage_counter;
   static unsigned long previous_millis;
