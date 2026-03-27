@@ -8,8 +8,8 @@ void Turn::begin() {
   count_ = 0;
   _phase = 0;
   
-  if (!_turn_pid) _turn_pid = new PID<float>(60.0, 2.0, 0.0, 0.0, true, -100.0, 100.0);
-  if (!_x_pid) _x_pid = new PID<float>(4.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
+  if (!_turn_pid) _turn_pid = new PID<float>(90.0, 15.0, 0.0, 0.0, true, -200.0, 200.0);
+  if (!_x_pid) _x_pid = new PID<float>(4.0, 0.5, 0.0, 0.0, true, -100.0, 100.0);
   if (!_angle_pid) _angle_pid = new PID<float>(8.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
   
   tiller_->_gyro->resetAngle();
@@ -48,7 +48,7 @@ void Turn::poll() {
         vx = _x_pid->update(dist_avg - 15.0); 
         vtheta = _angle_pid->update(angle_err - 0.0); 
         
-        if (abs(dist_avg - 15.0) < 2.0 && abs(angle_err) < 1.5) {
+        if (abs(dist_avg - 15.0) < 4.0 && abs(angle_err) < 3.0) {
              tiller_->_gyro->resetAngle(); 
              tiller_->switchState(State::STRAFE);
              return;

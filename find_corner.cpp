@@ -30,10 +30,12 @@ void FindCorner::begin() {
 
   if (_angle_pid) delete _angle_pid;
   if (_x_pid) delete _x_pid;
+  if (_y_pid) delete _y_pid;
   if (_rotate_pid) delete _rotate_pid;
-  _angle_pid = new PID<float>(8.0, 0.005, 0.0, 0.0, false, -100.0, 100.0);
-  _x_pid = new PID<float>(4.0, 0.0005, 0.0, 0.0, true, -100.0, 100.0);
-  _rotate_pid = new PID<float>(60.0, 2.0, 0.0, 0.0, true, -100.0, 100.0);
+  _angle_pid = new PID<float>(12.0, 0.005, 0.0, 0.0, false, -100.0, 100.0);
+  _x_pid = new PID<float>(6.0, 0.005, 0.0, 0.0, true, -100.0, 100.0);
+  _y_pid = new PID<float>(8.0, 0.005, 0.0, 0.0, true, -100.0, 100.0);
+  _rotate_pid = new PID<float>(140.0, 8.0, 0.0, 0.0, true, -200.0, 200.0);
   _rotate_phase = 0;
 }
 
@@ -115,7 +117,7 @@ void FindCorner::poll() {
         float fl = tiller_->_front_left_ir->readSensor();
         float fr = tiller_->_front_right_ir->readSensor();
         
-        if ((fl > 0 && fl < FRONT_DETECT_CM) || (fr > 0 && fr < FRONT_DETECT_CM)) {
+        if ((fl > 0 && fl < FRONT_DETECT_CM) && (fr > 0 && fr < FRONT_DETECT_CM)) {
           stopDrive();
           hs.stage = HC_ALIGN_PERP;
           hs.last_millis = millis();
@@ -145,11 +147,11 @@ void FindCorner::poll() {
       if (fl > 0.0 && fr > 0.0) {
         dist_avg = (fl + fr) / 2.0;
         angle_err = fl - fr;
-      } else if (fl > 0.0) {
-        dist_avg = fl;
-      } else if (fr > 0.0) {
-        dist_avg = fr;
-      }
+      // } else if (fl > 0.0) {
+      //   dist_avg = fl;
+      // } else if (fr > 0.0) {
+      //   dist_avg = fr;
+       }
 
       float vx = _x_pid->update(dist_avg - TARGET_DISTANCE_CM);
       float vtheta = _angle_pid->update(angle_err);
@@ -212,7 +214,7 @@ void FindCorner::poll() {
         float current_angle = tiller_->_gyro->getAngle();
         float error = _rotate_target - current_angle;
         float vtheta = _rotate_pid->update(error);
-        
+
         static unsigned long last_gyro_print = 0;
         if (millis() - last_gyro_print > 100) {
           tiller_->print("Gyro Angle: ");
@@ -226,67 +228,89 @@ void FindCorner::poll() {
 
         tiller_->_motors->writeAllMotors(0, 0, -vtheta);
 
-        if (fabs(error) < 0.12) {  // ~4.5 degrees tolerance
+        if (fabs(error) < 0.05) {  // ~2.8 degrees tolerance
           tiller_->_motors->writeAllMotors(0, 0, 0);
           _rotate_phase = 1;
+          tiller_->_gyro->resetAngle(); // Reset heading to 0 for straight drive out of corner
+          _angle_pid->resetPID();
+          _x_pid->resetPID();
+          _y_pid->resetPID();
           tiller_->println("Homing: rotation complete, driving to wall");
         }
       } else {
-        // Phase 1: Drive forward until front sensors read target distance
+        // Phase 1: Drive straight forward until front wall is detected
         float fl = tiller_->_front_left_ir->readSensor();
         float fr = tiller_->_front_right_ir->readSensor();
-        float front_dist = (fl > 0 && fr > 0) ? (fl + fr) / 2.0 : -1.0;
-
-        if (front_dist > 0 && fabs(front_dist - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM) {
+        
+        if (fl > 0.0 && fr > 0.0) {
           tiller_->_motors->writeAllMotors(0, 0, 0);
-          tiller_->println("Homing: front reached target distance in corner");
-          hs.stage = HC_DONE;
-          return;
+          tiller_->println("Homing: spotted front wall, transitioning to align perp");
+          hs.stage = HC_ALIGN_PERP;
+        } else {
+          // Drive forward blind, use Gyro to stay perfectly straight
+          float heading = tiller_->_gyro->getAngle();
+          float vtheta = _angle_pid->update(0.0 - heading);
+          tiller_->_motors->writeAllMotors(100.0, 0.0, vtheta); // No VY
         }
-
-        // Keep driving forward while maintaining heading
-        float heading = tiller_->_gyro->getAngle();
-        float vtheta = _rotate_pid->update(_rotate_target - heading);
-        tiller_->_motors->writeAllMotors(150, 0, -vtheta);
       }
       return;
     }
 
     case HC_STRAFE_ALIGN: {
-      // PID-based continuous strafe (polled each cycle)
+      // PID-based continuous 3DOF strafe alignment into the corner
+      float fl = tiller_->_front_left_ir->readSensor();
+      float fr = tiller_->_front_right_ir->readSensor();
+      
+      float dist_avg = TARGET_DISTANCE_CM;
+      float angle_err = 0.0;
+      if (fl > 0.0 && fr > 0.0) {
+        dist_avg = (fl + fr) / 2.0;
+        angle_err = fl - fr;
+      }
+
       float l = tiller_->_side_left_ir->readSensor();
       float r = tiller_->_side_right_ir->readSensor();
       bool l_valid = (l > 0 && l < 1000);
       bool r_valid = (r > 0 && r < 1000);
 
-      // Maintain heading with gyro
-      float heading = tiller_->_gyro->getAngle();
-      float vtheta = _angle_pid->update(0.0 - heading);
-
       float vy = 0.0;
-      bool at_target = false;
+      float side_dist = TARGET_DISTANCE_CM;
 
       if (l_valid && (!r_valid || l < r)) {
         // Strafe toward left wall using PID
         float y_error = TARGET_DISTANCE_CM - l;
-        vy = -_x_pid->update(y_error);  
-        at_target = (fabs(l - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM);
+        vy = -_y_pid->update(y_error);
+        side_dist = l;
       } else if (r_valid) {
         // Strafe toward right wall using PID
         float y_error = TARGET_DISTANCE_CM - r;
-        vy = _x_pid->update(y_error);
-        at_target = (fabs(r - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM);
+        vy = _y_pid->update(y_error);
+        side_dist = r;
       } else {
         // Both IRs out of range — blind strafe right until a sensor picks up
         vy = 100.0;
       }
 
-      tiller_->_motors->writeAllMotors(0, vy, vtheta);
+      float vx = 0.0;
+      float vtheta = 0.0;
+      if (fl > 0.0 && fr > 0.0) {
+        vx = _x_pid->update(dist_avg - TARGET_DISTANCE_CM);
+        vtheta = _angle_pid->update(angle_err);
+      } else {
+        // Maintain heading with gyro if somehow front sensors are lost
+        float heading = tiller_->_gyro->getAngle();
+        vtheta = _angle_pid->update(0.0 - heading); // 0.0 heading was zeroed in HC_ALIGN_PERP
+      }
 
-      if (at_target) {
+      tiller_->_motors->writeAllMotors(vx, vy, vtheta);
+
+      if (fl > 0.0 && fr > 0.0 &&
+          fabs(dist_avg - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM &&
+          fabs(angle_err) < 1.5 &&
+          fabs(side_dist - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM) {
         tiller_->_motors->writeAllMotors(0, 0, 0);
         hs.stage = HC_DONE;
-        tiller_->println("Homing: strafe reached target distance");
+        tiller_->println("Homing: 3DOF strafe reached target corner");
       }
       return;
     }

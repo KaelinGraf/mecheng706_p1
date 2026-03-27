@@ -46,11 +46,11 @@ void Strafe::poll() {
   if (wall_on_left) {
       y_error = _target_y - side_left; 
       // If error is positive, need to move right -> positive vy
-      vy = _y_pid->update(y_error);
+      vy = -_y_pid->update(y_error);
   } else if (side_right > 0.0) {
       y_error = _target_y - side_right;
       // If error is positive, need to move left -> negative vy
-      vy = -_y_pid->update(y_error);
+      vy = _y_pid->update(y_error);
   } else {
       // Blind strafing default?
       vy = 50.0; 
