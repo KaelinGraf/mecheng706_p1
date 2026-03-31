@@ -26,6 +26,8 @@ class Strafe : public State {
     PID<float>* _x_pid;
     PID<float>* _y_pid;
     float _target_y;
+    bool _use_left;            // locked sensor choice for this strafe
+    bool _using_home_sensor;   // true if using home-wall sensor
 };
 
 #endif // STRAFE_H

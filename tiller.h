@@ -6,7 +6,11 @@
 #include "servo_control.h"
 #include "pid.h"
 
-#define NUM_Y_TGTS 3
+// Field geometry & tilling configuration
+static constexpr float Y_WIDTH = 121.7f;          // field width in cm
+static constexpr float Y_MARGIN = 15.0f;           // margin from walls in cm
+static constexpr int   NUM_SNAKES = 6;              // number of tilling passes
+static constexpr float SENSOR_MAX_RANGE = 80.0f;    // long-range IR max in cm
 
 class Tiller {
 private:
@@ -14,8 +18,11 @@ private:
     State *states_[State::NUM_STATES];
     HardwareSerial *serialCom_;
     SoftwareSerial *btSerial_ = nullptr;
-    float y_tgts_[NUM_Y_TGTS] = {15.0, 30.0, 45.0};
+    float y_tgts_[NUM_SNAKES];          // computed in constructor
+    bool  use_far_[NUM_SNAKES];          // true if pass i uses the far-wall sensor
     unsigned int curr_y_idx_ = 0;
+    int turn_count_ = 0;                // tracks 180° turns for sensor parity
+    int home_wall_sensor_ = -1;         // 0=left, 1=right, -1=not set
 
 public:
     ShortRangeIR* _front_left_ir;
@@ -44,5 +51,10 @@ public:
     }
     bool is_battery_voltage_OK();
     inline float get_y_tgt() { return y_tgts_[curr_y_idx_]; }
-    inline void inc_y_tgt() { if (curr_y_idx_ < NUM_Y_TGTS-1) curr_y_idx_++; }
+    inline void inc_y_tgt() { if (curr_y_idx_ < NUM_SNAKES-1) curr_y_idx_++; }
+    inline int getTurnCount() { return turn_count_; }
+    inline void incTurnCount() { turn_count_++; }
+    inline int getHomeWallSensor() { return home_wall_sensor_; }
+    inline void setHomeWallSensor(int s) { home_wall_sensor_ = s; }
+    inline bool useFarSensor() { return use_far_[curr_y_idx_]; }
 };

@@ -50,6 +50,7 @@ void Turn::poll() {
         
         if (abs(dist_avg - 15.0) < 4.0 && abs(angle_err) < 3.0) {
              tiller_->_gyro->resetAngle(); 
+             tiller_->incTurnCount();
              tiller_->switchState(State::STRAFE);
              return;
         }

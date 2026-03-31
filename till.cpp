@@ -8,22 +8,26 @@ void Till::begin() {
   Serial.println("tilling");
   last_millis_ = millis();
   count_ = 0;
-  _target_sensor= findYRef();
+
+  // findYRef picks the sensor AND sets _target_y and _using_far_sensor
+  _target_sensor = findYRef();
 
   tiller_->print("target sens: ");
-  tiller_->println(_target_sensor);
-
-  _target_y = tiller_->get_y_tgt();
-  tiller_->print("target: ");
+  tiller_->println(_target_sensor == SIDE_SENSOR::left ? "LEFT" : "RIGHT");
+  tiller_->print("using far sensor: ");
+  tiller_->println(_using_far_sensor ? "YES" : "NO");
+  tiller_->print("y from home wall: ");
+  tiller_->print(tiller_->get_y_tgt());
+  tiller_->println(" cm");
+  tiller_->print("sensor setpoint: ");
   tiller_->print(_target_y);
-  tiller_->println("cm");
+  tiller_->println(" cm");
 
   tiller_->_gyro->resetAngle();
   ultrasonic_count_ = 0;
 
   _gyro_pid = new PID<float>(10.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
   _y_pid = new PID<float>(4.0, 0.0, 1.0, 0.0, false, -100.0, 100.0);
-  
 }
 
 void Till::end() {
@@ -75,74 +79,53 @@ void Till::poll() {
 
 
 Till::SIDE_SENSOR Till::findYRef(){
-  const int N_SAMPLES = 10;
-  const int DELAY_MS  = 5;  // ms between samples
+  // --- First call: establish which sensor faces the home wall ---
+  if (tiller_->getHomeWallSensor() == -1) {
+    float left_val  = tiller_->_side_left_ir->readSensorFiltered(5, 50);
+    float right_val = tiller_->_side_right_ir->readSensorFiltered(5, 50);
 
-  float left_samples[N_SAMPLES];
-  float right_samples[N_SAMPLES];
-  int   left_valid  = 0;
-  int   right_valid = 0;
+    tiller_->print("findYRef init: L="); tiller_->print(left_val);
+    tiller_->print("  R=");              tiller_->println(right_val);
 
-  // Collect multiple readings from both sensors
-  for (int i = 0; i < N_SAMPLES; i++) {
-    float l = tiller_->_side_left_ir->readSensor();
-    float r = tiller_->_side_right_ir->readSensor();
+    // The closer sensor is the one facing the home wall (we just homed to it)
+    bool left_ok  = (left_val > 0.0);
+    bool right_ok = (right_val > 0.0);
 
-    if (l > 0.0) { left_samples[left_valid++]   = l; }
-    if (r > 0.0) { right_samples[right_valid++] = r; }
-
-    delay(DELAY_MS);
-  }
-
-  tiller_->print("findYRef: left valid=");  tiller_->print(left_valid);
-  tiller_->print("  right valid=");         tiller_->println(right_valid);
-
-  // If one sensor has too few valid readings, use the other
-  const int MIN_VALID = N_SAMPLES / 2;  // need at least half valid
-  bool left_ok  = (left_valid  >= MIN_VALID);
-  bool right_ok = (right_valid >= MIN_VALID);
-
-  if (!left_ok && !right_ok) {
-    tiller_->println("findYRef: both sensors unreliable, defaulting left");
-    return SIDE_SENSOR::left;
-  }
-  if (!left_ok)  return SIDE_SENSOR::right;
-  if (!right_ok) return SIDE_SENSOR::left;
-
-  // Compute mean and standard deviation for each sensor
-  auto computeStats = [](float* samples, int n, float &mean, float &stddev) {
-    float sum = 0.0;
-    for (int i = 0; i < n; i++) sum += samples[i];
-    mean = sum / n;
-
-    float sq_sum = 0.0;
-    for (int i = 0; i < n; i++) {
-      float diff = samples[i] - mean;
-      sq_sum += diff * diff;
+    if (left_ok && (!right_ok || left_val <= right_val)) {
+      tiller_->setHomeWallSensor(0);  // left faces home wall
+      tiller_->println("findYRef: home wall sensor = LEFT");
+    } else {
+      tiller_->setHomeWallSensor(1);  // right faces home wall
+      tiller_->println("findYRef: home wall sensor = RIGHT");
     }
-    stddev = sqrt(sq_sum / n);
-  };
-
-  float left_mean, left_std, right_mean, right_std;
-  computeStats(left_samples,  left_valid,  left_mean,  left_std);
-  computeStats(right_samples, right_valid, right_mean, right_std);
-
-  tiller_->print("findYRef: L mean="); tiller_->print(left_mean);
-  tiller_->print(" std=");             tiller_->print(left_std);
-  tiller_->print("  R mean=");         tiller_->print(right_mean);
-  tiller_->print(" std=");             tiller_->println(right_std);
-
-  // Choose the sensor with lower noise (standard deviation)
-  if (left_std < right_std) {
-    tiller_->println("findYRef: chose LEFT (lower noise)");
-    return SIDE_SENSOR::left;
-  } else if (right_std < left_std) {
-    tiller_->println("findYRef: chose RIGHT (lower noise)");
-    return SIDE_SENSOR::right;
-  } else {
-    // Equal noise — pick whichever is closer (more reliable at short range)
-    tiller_->println("findYRef: equal noise, choosing by distance");
-    return (left_mean <= right_mean) ? SIDE_SENSOR::left : SIDE_SENSOR::right;
   }
-}
 
+  // --- Determine which sensor currently faces the home wall ---
+  int turns = tiller_->getTurnCount();
+  bool home_is_left;
+  if (tiller_->getHomeWallSensor() == 0) {
+    home_is_left = (turns % 2 == 0);
+  } else {
+    home_is_left = (turns % 2 != 0);
+  }
+
+  // --- Pick sensor based on pre-computed use_far flag ---
+  // y_target is already the sensor distance (mirrored after midpoint)
+  _using_far_sensor = tiller_->useFarSensor();
+  _target_y = tiller_->get_y_tgt();
+
+  SIDE_SENSOR chosen;
+  if (!_using_far_sensor) {
+    chosen = home_is_left ? SIDE_SENSOR::left : SIDE_SENSOR::right;
+  } else {
+    chosen = home_is_left ? SIDE_SENSOR::right : SIDE_SENSOR::left;
+  }
+
+  tiller_->print("findYRef: turns="); tiller_->print(turns);
+  tiller_->print(" homeIsLeft=");     tiller_->print(home_is_left);
+  tiller_->print(" useFar=");         tiller_->print(_using_far_sensor);
+  tiller_->print(" tgt=");            tiller_->print(_target_y);
+  tiller_->print(" sensor=");         tiller_->println(chosen == SIDE_SENSOR::left ? "LEFT" : "RIGHT");
+
+  return chosen;
+}

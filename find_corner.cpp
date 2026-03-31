@@ -9,7 +9,7 @@
 static const float TARGET_DISTANCE_CM = 16.0f;  // desired distance from wall
 static const float ALIGN_TOLERANCE_CM = 2.0f;   // front sensors equal within this
 static const float FRONT_DETECT_CM = 30.0f;     // initial detection threshold
-static const float US_SHORT_THRESHOLD_CM = 150.0f;  // threshold to classify short side
+static const float US_SHORT_THRESHOLD_CM = 100.0f;  // threshold to classify short side
 
 // timing constants for open-loop moves (ms) - Approximate need to be tuned.
 static const unsigned long FORWARD_BURST_MS = 300;
@@ -147,10 +147,10 @@ void FindCorner::poll() {
       if (fl > 0.0 && fr > 0.0) {
         dist_avg = (fl + fr) / 2.0;
         angle_err = fl - fr;
-      // } else if (fl > 0.0) {
-      //   dist_avg = fl;
-      // } else if (fr > 0.0) {
-      //   dist_avg = fr;
+      } else if (fl > 0.0) {
+        dist_avg = fl;
+      } else if (fr > 0.0) {
+        dist_avg = fr;
        }
 
       float vx = _x_pid->update(dist_avg - TARGET_DISTANCE_CM);
@@ -172,18 +172,22 @@ void FindCorner::poll() {
 
     case HC_CHECK_US: {
       tiller_->println("Homing: checking ultrasonic to classify side length");
-      float usval = tiller_->_ultrasonic->readSensor();
-      tiller_->print("Ultrasonic (rear): ");
-      tiller_->println(usval);
-      
-      if (usval > 0 && usval < US_SHORT_THRESHOLD_CM) {
+
+      // Use filtered read: 5 samples, no extra delay (ultrasonic is blocking)
+      float usval = tiller_->_ultrasonic->readSensorFiltered(5);
+
+      tiller_->print("Homing: US filtered: ");
+      tiller_->print(usval);
+      tiller_->println(" cm");
+
+      if (usval <= 0.0) {
+        tiller_->println("Homing: ultrasonic invalid, falling back to strafe");
+        hs.stage = HC_STRAFE_ALIGN;
+      } else if (usval < US_SHORT_THRESHOLD_CM) {
         tiller_->println("Homing: detected short side — will rotate to closest side IR");
         hs.stage = HC_ROTATE_MOVE;
-      } else if (usval >= US_SHORT_THRESHOLD_CM) {
-        tiller_->println("Homing: detected long side — will strafe to closest wall");
-        hs.stage = HC_STRAFE_ALIGN;
       } else {
-        tiller_->println("Homing: ultrasonic invalid, proceeding with strafe fallback");
+        tiller_->println("Homing: detected long side — will strafe to closest wall");
         hs.stage = HC_STRAFE_ALIGN;
       }
       return;

@@ -22,6 +22,7 @@ class Till : public State {
     };
     SIDE_SENSOR _target_sensor;
     float _target_y;
+    bool _using_far_sensor;    // true if using the sensor facing the far wall
     SIDE_SENSOR findYRef();
     void begin() override;
     // void begin(void* data) override;

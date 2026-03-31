@@ -22,6 +22,7 @@ class Sensor{
   public:
     Sensor(uint8_t read_pin);
     virtual float readSensor();
+    float readSensorFiltered(int nSamples, int delayMs = 0);
     virtual void setReadPin(uint8_t new_pin);
     virtual uint8_t getReadPin();
 
@@ -52,7 +53,7 @@ class LongRangeIR: public Sensor{
   private:
     uint32_t _last_millis;
     float _prev_reading;
-    float _min_voltage = 0.45;
+    float _min_voltage = 0.1;
     float _max_voltage = 3.0;
 
 

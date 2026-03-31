@@ -20,6 +20,44 @@ Sensor::Sensor(uint8_t read_pin){
   _read_pin = read_pin;
 }
 
+float Sensor::readSensorFiltered(int nSamples, int delayMs) {
+  // Cap at a reasonable max to avoid stack issues
+  const int MAX_SAMPLES = 20;
+  if (nSamples > MAX_SAMPLES) nSamples = MAX_SAMPLES;
+  if (nSamples < 1) nSamples = 1;
+
+  float samples[MAX_SAMPLES];
+  int valid = 0;
+
+  for (int i = 0; i < nSamples; i++) {
+    float reading = readSensor();
+    // Discard invalid readings: negative, NaN, or Inf
+    if (!isnan(reading) && !isinf(reading) && reading > 0.0) {
+      // Insertion sort to keep samples ordered (for median)
+      int j = valid;
+      while (j > 0 && samples[j - 1] > reading) {
+        samples[j] = samples[j - 1];
+        j--;
+      }
+      samples[j] = reading;
+      valid++;
+    }
+    if (delayMs > 0 && i < nSamples - 1) {
+      delay(delayMs);
+    }
+  }
+
+  if (valid == 0) return -1.0;
+  if (valid == 1) return samples[0];
+
+  // Return the median (robust against outliers and ghost echoes)
+  if (valid % 2 == 1) {
+    return samples[valid / 2];
+  } else {
+    return (samples[valid / 2 - 1] + samples[valid / 2]) / 2.0;
+  }
+}
+
 
 float ShortRangeIR::readSensor(){
   if ((millis() - _last_millis)<=SHORTRANGE_LATENCY){ //in the event of "double read" 
