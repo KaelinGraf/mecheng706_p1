@@ -22,7 +22,7 @@ void Till::begin() {
   ultrasonic_count_ = 0;
 
   _gyro_pid = new PID<float>(50.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
-  _y_pid = new PID<float>(5.0, 0.0, 0.1, 0.0, false, -100.0, 100.0);
+  _y_pid = new PID<float>(20.0, 0.0, 1.0, 0.0, false, -100.0, 100.0);
   
 }
 

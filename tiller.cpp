@@ -68,16 +68,6 @@ bool Tiller::switchState(State::Name newState, void* data = nullptr) {
 }
 
 void Tiller::pollState() {
-  if (!is_battery_voltage_OK()) {
-    _motors->writeAllMotors(0, 0, 0); // Immediately kill thrust
-    while (true) {
-      this->println("FATAL ERROR: BATTERY < 10%.");
-      this->println("Robot halted to prevent logic brownout and undefined behavior.");
-      this->println("Please recharge the 3S LiPo battery.");
-      delay(2000); // Infinite trap loop
-    }
-  }
-
   _gyro->readSensor();
   if (current_state_) {
     current_state_->poll();
@@ -114,7 +104,7 @@ bool Tiller::is_battery_voltage_OK() {
   Lipo_level_cal = Lipo_level_cal * 100;
   Lipo_level_cal = Lipo_level_cal / 143;
 
-  if (Lipo_level_cal >= 10 && Lipo_level_cal <= 160) {
+  if (Lipo_level_cal > 0 && Lipo_level_cal < 160) {
     previous_millis = millis();
     this->print("Lipo level:");
     this->print(Lipo_level_cal);

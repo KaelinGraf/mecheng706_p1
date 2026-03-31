@@ -214,7 +214,7 @@ void FindCorner::poll() {
         float current_angle = tiller_->_gyro->getAngle();
         float error = _rotate_target - current_angle;
         float vtheta = _rotate_pid->update(error);
-
+        
         static unsigned long last_gyro_print = 0;
         if (millis() - last_gyro_print > 100) {
           tiller_->print("Gyro Angle: ");
@@ -238,19 +238,59 @@ void FindCorner::poll() {
           tiller_->println("Homing: rotation complete, driving to wall");
         }
       } else {
-        // Phase 1: Drive straight forward until front wall is detected
+        // Phase 1: Full 3DOF alignment into the corner
         float fl = tiller_->_front_left_ir->readSensor();
         float fr = tiller_->_front_right_ir->readSensor();
         
+        float dist_avg = TARGET_DISTANCE_CM;
+        float angle_err = 0.0;
         if (fl > 0.0 && fr > 0.0) {
-          tiller_->_motors->writeAllMotors(0, 0, 0);
-          tiller_->println("Homing: spotted front wall, transitioning to align perp");
-          hs.stage = HC_ALIGN_PERP;
+          dist_avg = (fl + fr) / 2.0;
+          angle_err = fl - fr;
+        }
+
+        // Side distance
+        float l = tiller_->_side_left_ir->readSensor();
+        float r = tiller_->_side_right_ir->readSensor();
+        bool l_valid = (l > 0 && l < 1000);
+        bool r_valid = (r > 0 && r < 1000);
+
+        float vy = 0.0;
+        float side_dist = TARGET_DISTANCE_CM;
+        if (l_valid && (!r_valid || l < r)) {
+          float y_error = TARGET_DISTANCE_CM - l;
+          vy = -_y_pid->update(y_error); // negative = strafe left toward wall
+          side_dist = l;
+        } else if (r_valid) {
+          float y_error = TARGET_DISTANCE_CM - r;
+          vy = _y_pid->update(y_error); // positive = strafe right toward wall
+          side_dist = r;
+        }
+
+        float vx = 0.0;
+        float vtheta = 0.0;
+        if (fl > 0.0 && fr > 0.0) {
+          vx = _x_pid->update(dist_avg - TARGET_DISTANCE_CM);
+          // Square up to wall using IRs
+          vtheta = _angle_pid->update(angle_err);
         } else {
-          // Drive forward blind, use Gyro to stay perfectly straight
+          // If sensors are out of range, drive forward blind until they pick up the wall
+          vx = 100.0;
+          // Maintain perfectly straight heading with gyro
           float heading = tiller_->_gyro->getAngle();
-          float vtheta = _angle_pid->update(0.0 - heading);
-          tiller_->_motors->writeAllMotors(100.0, 0.0, vtheta); // No VY
+          vtheta = _angle_pid->update(0.0 - heading);
+        }
+
+        tiller_->_motors->writeAllMotors(vx, vy, vtheta);
+
+        if (fl > 0 && fr > 0 && 
+            fabs(dist_avg - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM && 
+            fabs(angle_err) < 1.5 && 
+            fabs(side_dist - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM) {
+          tiller_->_motors->writeAllMotors(0, 0, 0);
+          tiller_->println("Homing: corner alignment complete");
+          tiller_->_gyro->resetAngle(); // Reset gyro for TILL
+          hs.stage = HC_DONE;
         }
       }
       return;

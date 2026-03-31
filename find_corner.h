@@ -37,7 +37,6 @@ class FindCorner : public State {
     PID<float>* _rotate_pid;
     float _rotate_target;  // target angle in radians (±PI/2)
     int _rotate_phase;     // 0 = rotating, 1 = driving forward
-    int _target_wall;      // 0 = none, 1 = left, 2 = right
 };
 
 

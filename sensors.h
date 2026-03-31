@@ -32,8 +32,8 @@ class ShortRangeIR: public Sensor{
   private:
     uint32_t _last_millis;
     float _prev_reading;
-    float _min_voltage = 0.3;
-    float _max_voltage = 3.0;
+    float _min_voltage = 0.25;
+    float _max_voltage = 2.9;
 
 
   public:
