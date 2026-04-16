@@ -71,15 +71,25 @@ class Ultrasonic: public Sensor{
     uint8_t _echo_pin = ECHO_PIN;
     uint8_t _trigger_pin = TRIG_PIN;
     unsigned int _max_dist = MAX_DIST;
+    unsigned long sent_time = 0;
+    unsigned long return_time = 0;
+    unsigned long _last_sent = 0;
   
   public:
-    Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, unsigned int max_dist);
+    Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, int max_dist);
 
     float readSensor() override;
     inline float applyCalibration(float adc_voltage) override {return adc_voltage;};
+    void initUltrasonic();
+    void runUltrasonic();
+    void setSentTime(unsigned long t1){sent_time = t1;};
+    unsigned long getSentTime(){return sent_time;};
+    void setReturnTime(unsigned long t2){return_time = t2;};
+    unsigned long getReturnTime(){return return_time;};
+    void setLastSent(unsigned long last_sent){_last_sent = last_sent;};
+    unsigned long getLastSent(){return _last_sent;};
     
 };
-
 
 class Gyroscope: public Sensor{
   private:
