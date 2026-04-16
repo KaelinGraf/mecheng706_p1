@@ -16,11 +16,6 @@ static const unsigned long FORWARD_BURST_MS = 300;
 static const unsigned long ROTATE_90_MS = 900;  // approximate rotation time for 90deg
 static const unsigned long STRAFE_BURST_MS = 350;
 
-struct HomingState {
-  FindCorner::HomingStage stage = FindCorner::HC_DRIVE_TO_WALL;
-  unsigned long last_millis = 0;
-  int attempts = 0;
-};
 
 void FindCorner::begin() {
   tiller_->println("finding Corner...");
@@ -95,7 +90,6 @@ void FindCorner::end() {
 // }
 
 void FindCorner::poll() {
-  static HomingState hs;
 
   // --- lamdas for writing to motors (is this right??)
   auto forward = [&](int effort) { tiller_->_motors->writeAllMotors(effort, 0, 0); };

@@ -4,6 +4,8 @@
 #include "state.h"
 #include "pid.h"
 
+
+
 class FindCorner : public State {
   public:
     enum HomingStage {
@@ -15,10 +17,15 @@ class FindCorner : public State {
       HC_DONE,
       HC_ABORT
     };
+    struct HomingState {
+      FindCorner::HomingStage stage = FindCorner::HC_DRIVE_TO_WALL;
+      unsigned long last_millis = 0;
+      int attempts = 0;
+    };
 
     FindCorner(Tiller* tiller) : State(State::FIND_CORNER, tiller),
       _angle_pid(nullptr), _x_pid(nullptr), _y_pid(nullptr), _rotate_pid(nullptr),
-      _rotate_target(0.0), _rotate_phase(0) {}
+      _rotate_target(0.0), _rotate_phase(0),hs() {}
     ~FindCorner() {
       if (_angle_pid) delete _angle_pid;
       if (_x_pid) delete _x_pid;
@@ -37,6 +44,7 @@ class FindCorner : public State {
     PID<float>* _rotate_pid;
     float _rotate_target;  // target angle in radians (±PI/2)
     int _rotate_phase;     // 0 = rotating, 1 = driving forward
+    HomingState hs;
 };
 
 
