@@ -170,7 +170,8 @@ void FindCorner::poll() {
       tiller_->println("Homing: checking ultrasonic to classify side length");
 
       // Use filtered read: 5 samples, no extra delay (ultrasonic is blocking)
-      float usval = tiller_->_ultrasonic->readSensorFiltered(5);
+      tiller_->_ultrasonic->runUltrasonic();
+      float usval = tiller_->_ultrasonic->readSensor();
 
       tiller_->print("Homing: US filtered: ");
       tiller_->print(usval);
