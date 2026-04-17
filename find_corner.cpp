@@ -8,7 +8,7 @@
 // Homing internal parameters (tunable)
 static const float TARGET_DISTANCE_CM = 16.0f;  // desired distance from wall
 static const float ALIGN_TOLERANCE_CM = 2.0f;   // front sensors equal within this
-static const float FRONT_DETECT_CM = 30.0f;     // initial detection threshold
+static const float FRONT_DETECT_CM = 20.0f;     // initial detection threshold
 static const float US_SHORT_THRESHOLD_CM = 100.0f;  // threshold to classify short side
 
 // timing constants for open-loop moves (ms) - Approximate need to be tuned.
@@ -135,23 +135,25 @@ void FindCorner::poll() {
       float fl = tiller_->_front_left_ir->readSensor();
       float fr = tiller_->_front_right_ir->readSensor();
 
-      float dist_avg = TARGET_DISTANCE_CM; // fallback if sensors invalid
       float angle_err = 0.0;
+      float dist_avg;
+      //if neither of the sensors returned a good value, dont update the PID 
+      if (fl>0.0 |fr > 0.0){
+        if (fl > 0.0 && fr > 0.0) {
+            dist_avg = (fl + fr) / 2.0;
+            angle_err = fl - fr;
+        } else if (fl > 0.0) {
+            dist_avg = fl;
+        } else if (fr > 0.0) {
+            dist_avg = fr;}
+          
 
-      if (fl > 0.0 && fr > 0.0) {
-        dist_avg = (fl + fr) / 2.0;
-        angle_err = fl - fr;
-      } else if (fl > 0.0) {
-        dist_avg = fl;
-      } else if (fr > 0.0) {
-        dist_avg = fr;
-       }
+          float vx = _x_pid->update(dist_avg - TARGET_DISTANCE_CM);
+          float vtheta = _angle_pid->update(angle_err);
 
-      float vx = _x_pid->update(dist_avg - TARGET_DISTANCE_CM);
-      float vtheta = _angle_pid->update(angle_err);
-
-      tiller_->_motors->writeAllMotors(vx, 0, vtheta);
-
+          tiller_->_motors->writeAllMotors(vx, 0, vtheta);
+      }
+      
       // Transition when both distance and angle errors are within tolerance
       if (fl > 0.0 && fr > 0.0 &&
           fabs(dist_avg - TARGET_DISTANCE_CM) < ALIGN_TOLERANCE_CM &&
@@ -180,7 +182,7 @@ void FindCorner::poll() {
       } else if (usval < US_SHORT_THRESHOLD_CM) {
         tiller_->println("Homing: detected short side — will rotate to closest side IR");
         hs.stage = HC_ROTATE_MOVE;
-      } else {
+      } else if (usval >= US_SHORT_THRESHOLD_CM){
         tiller_->println("Homing: detected long side — will strafe to closest wall");
         hs.stage = HC_STRAFE_ALIGN;
       }
@@ -192,8 +194,8 @@ void FindCorner::poll() {
         // Phase 0: Determine direction and PID-rotate 90 degrees
         // On first entry, determine rotation direction from side IRs
         if (_rotate_target == 0.0) {
-          float l = tiller_->_side_left_ir->readSensor();
-          float r = tiller_->_side_right_ir->readSensor();
+          float l = tiller_->_side_left_ir->readSensorFiltered(5);
+          float r = tiller_->_side_right_ir->readSensorFiltered(5);
           bool l_valid = (l > 0 && l < 1000);
           bool r_valid = (r > 0 && r < 1000);
 
@@ -201,7 +203,7 @@ void FindCorner::poll() {
           if (l_valid && (!r_valid || l < r)) {
             _rotate_target = PI / 2.0;   // CCW 90 deg (positive = CCW)
             tiller_->println("Homing: rotating CCW toward left wall");
-          } else {
+          } else { //fallback to turn cw
             _rotate_target = -PI / 2.0;  // CW 90 deg
             tiller_->println("Homing: rotating CW toward right wall");
           }

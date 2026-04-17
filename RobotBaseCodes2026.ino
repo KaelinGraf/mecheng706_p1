@@ -89,6 +89,7 @@ void setup(void)
   
   tiller = new Tiller(&bno08x,&sensorValue, &Serial);
   tiller->setBluetoothSerial(&BluetoothSerial); // Enable dual-printing to Bluetooth
+  tiller->print("bluetooth");
 
   delay(1000); // settling time but no really needed
 }
