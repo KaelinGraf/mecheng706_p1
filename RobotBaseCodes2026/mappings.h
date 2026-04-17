@@ -9,7 +9,7 @@
 // Anything over 400 cm (23200 us pulse) is "out of range". Hit:If you decrease to this the ranging sensor but the timeout is short, you may not need to read up to 4meters.
 #define MAX_DIST  23200
 
-#define LONGRANGE_LATENCY  48 //ms max latency between read updates (loop time cannot exceed this)
+#define LONGRANGE_LATENCY  50 //ms max latency between read updates (loop time cannot exceed this)
 #define SHORTRANGE_LATENCY  20 //^
 
 #define V_ADC  5.0

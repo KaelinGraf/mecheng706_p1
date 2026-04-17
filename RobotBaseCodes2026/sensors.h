@@ -10,7 +10,6 @@
 
 //Class methods for reading and calibrating different sensor variants
 
-
 float readVoltage(uint8_t pin);
 
 
@@ -36,7 +35,6 @@ class ShortRangeIR: public Sensor{
     float _min_voltage = 0.45;
     float _max_voltage = 2.9;
 
-
   public:
     ShortRangeIR(uint8_t read_pin) : Sensor(read_pin){
       _last_millis = millis();
@@ -44,8 +42,6 @@ class ShortRangeIR: public Sensor{
     }
     float readSensor() override;
     float applyCalibration(float adc_voltage) override;
-    //TODO: ADD MOVING AVERAGE FILTER
-
 };
 
 
@@ -53,16 +49,21 @@ class LongRangeIR: public Sensor{
   private:
     uint32_t _last_millis;
     float _prev_reading;
-    float _min_voltage = 0.1;
+    float _kalman_estimate;
+    float _min_voltage = 0.4;
     float _max_voltage = 3.0;
-
+    float _last_y_var = 0.1;
+    float process_noise_ = 0.001;
+    float sensor_noise_ = 1;
 
   public:
     LongRangeIR(uint8_t read_pin) : Sensor(read_pin){
       _last_millis = millis();
       _prev_reading = -1.0;
+      _kalman_estimate = -1.0;
     }
     float readSensor() override;
+    float readSensorKalman();
     float applyCalibration(float adc_voltage) override;
 };
 

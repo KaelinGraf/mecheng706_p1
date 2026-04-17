@@ -87,12 +87,17 @@ float ShortRangeIR::applyCalibration(float adc_voltage){
 
 float LongRangeIR::readSensor(){
   long curr_ms = millis();
-  if ((curr_ms - _last_millis)<=LONGRANGE_LATENCY){ //in the event of "double read" 
+  if ((curr_ms - _last_millis) <= LONGRANGE_LATENCY){ //in the event of "double read" 
     return _prev_reading;
   }
-  _prev_reading = applyCalibration(readVoltage(_read_pin));
+  float curr_dist = applyCalibration(readVoltage(_read_pin));
+
+  if (abs(curr_dist - _prev_reading) > 8 && !(curr_ms - _last_millis > 2*LONGRANGE_LATENCY)) {
+    // delta too high, ignore reading
+    return _prev_reading;
+  }
   _last_millis = curr_ms;
-  return _prev_reading;
+  return curr_dist;
 }
 
 float LongRangeIR::applyCalibration(float adc_voltage){
@@ -108,7 +113,28 @@ float LongRangeIR::applyCalibration(float adc_voltage){
     return -1.0;
   }
   return (1/((adc_voltage - c) / m));
+}
+
+float LongRangeIR::readSensorKalman() {
+  float raw_dist = this->readSensor();
+  if (raw_dist < 0.0) return _kalman_estimate;
   
+  if (_kalman_estimate < 0.0) {
+    _kalman_estimate = raw_dist;
+    return _kalman_estimate;
+  }
+
+  float a_priori_est = _kalman_estimate;
+  float a_priori_var = _last_y_var + process_noise_;
+
+  float kalman_gain = a_priori_var / (a_priori_var + sensor_noise_);
+  float a_post_est = a_priori_est + kalman_gain * (raw_dist - a_priori_est);
+  float a_post_var = (1.0 - kalman_gain) * a_priori_var;
+
+  _kalman_estimate = a_post_est;
+  _last_y_var = a_post_var;
+
+  return _kalman_estimate;
 }
 
 void Ultrasonic::initUltrasonic(){
