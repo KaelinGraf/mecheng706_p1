@@ -64,6 +64,7 @@ class LongRangeIR: public Sensor{
     }
     float readSensor() override;
     float readSensorKalman();
+    void resetKalman();
     float applyCalibration(float adc_voltage) override;
 };
 

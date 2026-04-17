@@ -137,6 +137,13 @@ float LongRangeIR::readSensorKalman() {
   return _kalman_estimate;
 }
 
+void LongRangeIR::resetKalman() {
+  _prev_reading = -1.0;
+  _kalman_estimate = -1.0;
+  _last_y_var = 0.1;
+  _last_millis = millis();
+}
+
 void Ultrasonic::initUltrasonic(){
   runUltrasonic();
   int first = readSensor();
