@@ -190,6 +190,9 @@ float Ultrasonic::readSensor() {
     }
   }
   runUltrasonic();
+  if (cm <10.0 || cm > 200.0){
+    return -1.0;
+  }
   return cm;
 };
 

@@ -171,7 +171,11 @@ void FindCorner::poll() {
 
       // Use filtered read: 5 samples, no extra delay (ultrasonic is blocking)
       tiller_->_ultrasonic->runUltrasonic();
-      float usval = tiller_->_ultrasonic->readSensor();
+      float _ = tiller_->_ultrasonic->readSensor();
+      float usval = -1.0;
+      while (usval < 0.0){
+        usval = tiller_->_ultrasonic->readSensor();
+      }
 
       tiller_->print("Homing: US filtered: ");
       tiller_->print(usval);
