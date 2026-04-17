@@ -113,6 +113,7 @@ float LongRangeIR::applyCalibration(float adc_voltage){
 
 void Ultrasonic::initUltrasonic(){
   runUltrasonic();
+  int first = readSensor();
 }
 
 void Ultrasonic::runUltrasonic(){
