@@ -54,7 +54,7 @@ class LongRangeIR: public Sensor{
     float _max_voltage = 3.0;
     float _last_y_var = 0.1;
     float process_noise_ = 0.001;
-    float sensor_noise_ = 1;
+    float sensor_noise_ = 0.2;
 
   public:
     LongRangeIR(uint8_t read_pin) : Sensor(read_pin){
@@ -66,6 +66,7 @@ class LongRangeIR: public Sensor{
     float readSensorKalman();
     void resetKalman();
     float applyCalibration(float adc_voltage) override;
+    inline float getKalmanEst() {return _kalman_estimate; };
 };
 
 class Ultrasonic: public Sensor{

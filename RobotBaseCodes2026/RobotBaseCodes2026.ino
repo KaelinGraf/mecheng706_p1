@@ -69,6 +69,7 @@ void setupWireless();
 
 int pos = 0;
 Tiller *tiller = nullptr;
+long lastSensPrint;
 void setup(void)
 {
   EICRB |= (1 << ISC40);   // ISC41 = 0, ISC40 = 1 → ANY CHANGE
@@ -92,12 +93,16 @@ void setup(void)
   tiller->print("bluetooth");
 
   delay(1000); // settling time but no really needed
+  lastSensPrint = millis();
 }
 
 void loop(void) // main loop
 {
   tiller->pollState();
-  //tiller->testSensors();
+  if (millis() - lastSensPrint > 500) {
+    tiller->testSensors();
+    lastSensPrint = millis();
+  }
 }
 
 void printBluetooth()
