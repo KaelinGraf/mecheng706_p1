@@ -21,14 +21,28 @@ void Strafe::end() {
 }
 
 void Strafe::poll() {
-  float close_ir = tiller_->_front_left_ir->readSensor();
+
   float ultrasonic = tiller_->_ultrasonic->readSensor();
   
   float dist_avg = 15.0;
   float angle_err = 0.0;
-  
-  if (close_ir > 0.0 && ultrasonic > 0.0) {
-    dist_avg = close_ir;
+
+  if (tiller->getTurnCount() % 2 == 0) {
+    float long_ir_left = tiller_->_side_left_ir->readSensor();
+    float long_ir_right = tiller_->_side_right_ir->readSensor();
+    // Even turn count → left wall is home wall → use left long-range IR for forward distance
+    if (long_ir_left > 0.0 and long_ir_right > 0.0) {
+      dist_avg = (long_ir_left + long_ir_right) / 2;
+      angle_err = tiller_->_side_left_ir->readSensor() - tiller_->_side_right_ir->readSensor();  // simple angle error estimate from front/side IR difference
+    }
+  } else {
+    float short_ir_left = tiller_->_front_left_ir->readSensor();
+    float short_ir_right = tiller_->_front_right_ir->readSensor();
+    // Odd turn count → right wall is home wall → use front short-range IR for forward distance
+    if (short_ir_left > 0.0 and short_ir_right > 0.0) {
+      dist_avg = (short_ir_left + short_ir_right) / 2;
+      angle_err = short_ir_left - short_ir_right;  // simple angle error estimate from front/side IR difference
+    }
   }
   
   float vx = _x_pid->update(dist_avg - 15.0);
