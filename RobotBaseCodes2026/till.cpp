@@ -4,18 +4,22 @@
 #include "tiller.h"
 
 
-void Till::begin() {
-  Serial.println("tilling");
+void Till::begin(TillData data) {
+  tiller_->println("tilling");
+
   count_ = 0;
 
-  tiller_->print("y from home wall: ");
-  tiller_->print(tiller_->get_y_tgt());
-  tiller_->println(" cm");
-  tiller_->print("sensor setpoint: ");
+  _target_y = data.distance;
+
+  tiller_->print("y from wall: ");
   tiller_->print(_target_y);
   tiller_->println(" cm");
+  tiller_->print("homing?: ");
+  tiller_->println(data.homing ? "yes" : "no");
 
-  tilling_speed_ = tilling_speed_ > 0 ? -50 : 50; // move between driving foward and backward
+  if (!data.homing) {
+    tilling_speed_ = tilling_speed_ > 0 ? -50 : 50; // move between driving foward and backward
+  }
 
   tiller_->_gyro->resetAngle();
   endzone_count_ = 0;
@@ -54,7 +58,7 @@ void Till::poll() {
 
   float left_dist;
   float right_dist;
-  if (tilling_direction_ == 1) {
+  if (tilling_speed_ > 0) {
     // foward
     left_dist = tiller_->_front_left_ir->readSensor();
     right_dist = tiller_->_front_right_ir->readSensor();

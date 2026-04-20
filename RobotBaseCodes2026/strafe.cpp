@@ -6,7 +6,7 @@
 
 void Strafe::begin() {
   tiller_->_ultrasonic->runUltrasonic();
-  Serial.println("strafing");
+  tiller_->println("strafing");
   tiller_->inc_y_tgt();
   
   _target_y = tiller_->get_y_tgt();
@@ -60,6 +60,6 @@ void Strafe::poll() {
   // Check if we hit row target distance
   if (ultrasonic > 0.0 && fabs(y_error) < 2.0) {
       tiller_->println("Strafe: target reached, switching to TILL");
-      tiller_->switchState(State::TILL);
+      tiller_->switchState(State::TILL, {_target_y, false});
   }
 }

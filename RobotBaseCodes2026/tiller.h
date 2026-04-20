@@ -35,7 +35,7 @@ public:
     Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom);
     ~Tiller();
     void testSensors();
-    bool switchState(State::Name newState,void* data = nullptr);
+    bool switchState(State::Name newState, TillData data = {-1.0, false});
     void pollState();
     inline void setSerialCom(HardwareSerial *serialCom) { serialCom_ = serialCom; };
     inline void setBluetoothSerial(SoftwareSerial *btSerial) { btSerial_ = btSerial; };

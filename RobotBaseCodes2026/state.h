@@ -4,6 +4,11 @@
 class Tiller;
 struct StateResult;
 
+struct TillData {
+    float distance; // distance ultrasonic sensor is from wall (cm)
+    bool homing;    // if true, inital pass just move to corner
+};
+
 class State
 {
 public:
@@ -26,7 +31,7 @@ public:
     inline Name getState() const { return name_; }
 
     virtual void begin() = 0;
-    virtual void begin(void* data){};
+    virtual void begin(TillData data) {};
     virtual void end() = 0;
     virtual void poll() {};
 

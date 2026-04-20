@@ -81,7 +81,7 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
   current_state_->begin();
 }
 
-bool Tiller::switchState(State::Name newState, void* data = nullptr) {
+bool Tiller::switchState(State::Name newState, TillData data = {-1.0, false}) {
 // 1. End the current state
     if (current_state_) {
         current_state_->end();
@@ -101,7 +101,7 @@ bool Tiller::switchState(State::Name newState, void* data = nullptr) {
 
     // 3. Begin the new state
     if (current_state_) {
-      if (data != nullptr){
+      if (data.distance != -1.0){
         current_state_->begin(data);
         return true;
       }

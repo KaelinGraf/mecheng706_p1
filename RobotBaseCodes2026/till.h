@@ -13,7 +13,7 @@ class Till : public State {
       _gyro_pid = nullptr;
       _y_pid = nullptr;
       endzone_count_ = 0;
-      tilling_direction_ = 50;
+      tilling_speed_ = 50;
     }
     ~Till() {};
     enum SIDE_SENSOR{
@@ -23,8 +23,8 @@ class Till : public State {
     SIDE_SENSOR _target_sensor;
     float _target_y;
     SIDE_SENSOR findYRef();
-    void begin() override;
-    // void begin(void* data) override;
+    void begin() override {};
+    void begin(TillData data) override;
     void end() override;
     void poll() override;
   
