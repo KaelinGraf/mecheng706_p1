@@ -10,7 +10,7 @@ public:
     enum Name
     {
         INITIALISING,
-        FIND_CORNER,
+        HOMING,
         TILL,
         TURN,
         STRAFE,

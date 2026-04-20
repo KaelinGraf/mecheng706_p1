@@ -1,12 +1,11 @@
-#ifndef FIND_CORNER_H
-#define FIND_CORNER_H
+#ifndef HOMING_H
+#define HOMING_H
 
 #include "state.h"
 #include "pid.h"
 
 
-
-class FindCorner : public State {
+class Homing : public State {
   public:
     enum HomingStage {
       HC_DRIVE_TO_WALL,
@@ -15,18 +14,11 @@ class FindCorner : public State {
       HC_ROTATE_MOVE,
       HC_STRAFE_ALIGN,
       HC_DONE,
-      HC_ABORT
     };
-    struct HomingState {
-      FindCorner::HomingStage stage = FindCorner::HC_DRIVE_TO_WALL;
-      unsigned long last_millis = 0;
-      int attempts = 0;
-    };
-
-    FindCorner(Tiller* tiller) : State(State::FIND_CORNER, tiller),
+    Homing(Tiller* tiller) : State(State::HOMING, tiller),
       _angle_pid(nullptr), _x_pid(nullptr), _y_pid(nullptr), _rotate_pid(nullptr),
-      _rotate_target(0.0), _rotate_phase(0),hs() {}
-    ~FindCorner() {
+      _rotate_target(-1.0), _us_phase(0),_hs() {}
+    ~Homing() {
       if (_angle_pid) delete _angle_pid;
       if (_x_pid) delete _x_pid;
       if (_y_pid) delete _y_pid;
@@ -43,9 +35,11 @@ class FindCorner : public State {
     PID<float>* _y_pid;
     PID<float>* _rotate_pid;
     float _rotate_target;  // target angle in radians (±PI/2)
-    int _rotate_phase;     // 0 = rotating, 1 = driving forward
-    HomingState hs;
+    int _us_phase;     // 0 = rotating anticlockwise, 1 = rotating clockwise
+    HomingStage _hs;
 };
 
 
-#endif // FIND_CORNER_H
+
+
+#endif // HOMING_H

@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 #include "tiller.h"
-#include "find_corner.h"
+#include "homing.h"
 #include "till.h"
 #include "turn.h"
 #include "strafe.h"
@@ -71,7 +71,7 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
 
   // Initialise all states, prevents memory management issues
   states_[State::INITIALISING] = new Initialising(this);
-  states_[State::FIND_CORNER]  = new FindCorner(this);
+  states_[State::HOMING]  = new Homing(this);
   states_[State::TILL]         = new Till(this);
   states_[State::TURN]         = new Turn(this);
   states_[State::STRAFE]       = new Strafe(this);
@@ -127,6 +127,7 @@ void Tiller::testSensors(){
   print("gyro: rad, itegral");
   println(_gyro->readSensor());
   println(_gyro->getAngle());
+
   print("ultrasonic");
   println(_ultrasonic->readSensor());
 
@@ -135,6 +136,9 @@ void Tiller::testSensors(){
   println(_front_right_ir->readSensor());
   println(_side_left_ir->readSensor());
   println(_side_right_ir->readSensor());
+  println("IR kalman:(l,r) ");
+  println(_side_left_ir->readSensorKalman());
+  print(_side_right_ir->readSensorKalman());
   delay(200);
 
 }

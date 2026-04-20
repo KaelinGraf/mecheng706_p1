@@ -127,5 +127,5 @@ void Initialising::end() {
 }
 
 void Initialising::poll() {
-  tiller_->switchState(State::FIND_CORNER);
+  tiller_->switchState(State::HOMING);
 }
