@@ -52,14 +52,14 @@ void Strafe::poll() {
   float vtheta = _angle_pid->update(angle_err - 0.0);
 
   // Read the locked-in sensor
-  float side_reading = _use_left ? tiller_->_side_left_ir->readSensor() 
-                                 : tiller_->_side_right_ir->readSensor();
+  float rear_reading = _use_left ? tiller_->_rear_left_ir->readSensor() 
+                                 : tiller_->_rear_right_ir->readSensor();
   
   float y_error = 0.0;
   float vy = 0.0;
   
-  if (side_reading > 0.0) {
-    y_error = _target_y - side_reading;
+  if (rear_reading > 0.0) {
+    y_error = _target_y - rear_reading;
     if (_use_left) {
       vy = -_y_pid->update(y_error);  // left wall: positive error → strafe right
     } else {
@@ -73,7 +73,7 @@ void Strafe::poll() {
   // Diagnostics (throttled to avoid flooding serial)
   static unsigned long last_print = 0;
   if (millis() - last_print > 200) {
-    tiller_->print("Strafe: side=");    tiller_->print(side_reading);
+    tiller_->print("Strafe: rear=");    tiller_->print(rear_reading);
     tiller_->print(" tgt=");            tiller_->print(_target_y);
     tiller_->print(" err=");            tiller_->print(y_error);
     tiller_->print(" vy=");             tiller_->println(vy);
@@ -83,7 +83,7 @@ void Strafe::poll() {
   tiller_->_motors->writeAllMotors(vx, vy, vtheta);
   
   // Check if we hit row target distance
-  if (side_reading > 0.0 && fabs(y_error) < 2.0) {
+  if (rear_reading > 0.0 && fabs(y_error) < 2.0) {
       tiller_->println("Strafe: target reached, switching to TILL");
       tiller_->switchState(State::TILL);
   }

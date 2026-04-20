@@ -44,7 +44,7 @@ void Till::poll() {
   
   float heading = tiller_->_gyro->getAngle();
   last_y = current_y;
-  current_y = (_target_sensor == SIDE_SENSOR::left) ? tiller_->_side_left_ir->readSensor() : tiller_->_side_right_ir->readSensor();
+  current_y = (_target_sensor == SIDE_SENSOR::left) ? tiller_->_rear_left_ir->readSensor() : tiller_->_rear_right_ir->readSensor();
 
   if (current_y < 0) current_y = _target_y; // fallback
   if (fabs(current_y-last_y) > 5.0);
@@ -81,8 +81,8 @@ void Till::poll() {
 Till::SIDE_SENSOR Till::findYRef(){
   // --- First call: establish which sensor faces the home wall ---
   if (tiller_->getHomeWallSensor() == -1) {
-    float left_val  = tiller_->_side_left_ir->readSensorFiltered(5, 50);
-    float right_val = tiller_->_side_right_ir->readSensorFiltered(5, 50);
+    float left_val  = tiller_->_rear_left_ir->readSensorFiltered(5, 50);
+    float right_val = tiller_->_rear_right_ir->readSensorFiltered(5, 50);
 
     tiller_->print("findYRef init: L="); tiller_->print(left_val);
     tiller_->print("  R=");              tiller_->println(right_val);

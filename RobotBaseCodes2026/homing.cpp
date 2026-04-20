@@ -5,10 +5,10 @@
 #include "servo_control.h"
 #include "tiller.h"
 
-static const float TARGET_DISTANCE_CM = 2.0f;  // desired distance from wall
+static const float TARGET_DISTANCE_CM = 18.0f; // desired distance from wall (Long Range IR blind spot is 10cm, must be >10)
 static const float ALIGN_TOLERANCE_CM = 2.0f;   // front sensors equal within this
-static const float FRONT_DETECT_CM = 20.0f;     // initial detection threshold
-static const float US_SHORT_THRESHOLD_CM = 100.0f;  // threshold to classify short side
+static const float FRONT_DETECT_CM = 30.0f;     // initial detection threshold
+static const float US_SHORT_THRESHOLD_CM = 110.0f;  // threshold to classify short side
 static const float US_DIST_CM = 105.0f;
 
 
@@ -42,13 +42,15 @@ void Homing::poll(){
     auto rotateCW = [&](int effort) { tiller_->_motors->writeAllMotors(0, 0, -effort); };
     auto rotateCCW = [&](int effort) { tiller_->_motors->writeAllMotors(0, 0, effort); };
     auto stopDrive = [&]() { tiller_->_motors->writeAllMotors(0, 0, 0); };
+    // tiller_->print("HS: ");
+    // tiller_->println(_hs);
     switch (_hs) {
         case HC_DRIVE_TO_WALL:
             tiller_->println("Homing: driving forward to find wall");
-            forward(220); // Using lambda
+            forward(120); // Using lambda
             
-            float fl = tiller_->_front_left_ir->readSensor();
-            float fr = tiller_->_front_right_ir->readSensor();
+            fl = tiller_->_front_left_ir->readSensor();
+            fr = tiller_->_front_right_ir->readSensor();
                 
             //both sensors in range, switch to aligning stage.
             if ((fl > 0 && fl < FRONT_DETECT_CM) && (fr > 0 && fr < FRONT_DETECT_CM)) {
@@ -59,6 +61,7 @@ void Homing::poll(){
             }
             return;
         case HC_ALIGN_PERP:{
+            //tiller_->print("align perp");
             // Aligning perpendicular to wall using front IR sensors
             // Takes difference of front left and right IRs to estimate angle, average for distance
             fl = tiller_->_front_left_ir->readSensor();
@@ -81,6 +84,10 @@ void Homing::poll(){
                 float vtheta = _angle_pid->update(angle_err);
 
                 tiller_->_motors->writeAllMotors(vx, 0, vtheta);
+                // tiller_->println("applying efforts (vx vy vtheta)");
+                // tiller_->println(vx);
+                // tiller_->println(vtheta);
+
             }
             // Transition when both distance and angle errors are within tolerance
             if (fl > 0.0 && fr > 0.0 &&
@@ -103,7 +110,7 @@ void Homing::poll(){
             // Checks ultrasonic to classify side length, transitions to either till or strafe depending on result
             tiller_->_ultrasonic->runUltrasonic();
             usval = -1.0;
-            while (usval < 50.0 && usval >= 300.0){
+            while (usval < 50.0 || usval >= 300.0){
                 //read tll valid reading (must be between 50 and 300 cm, otherwise likely a spurious reading)
                 usval = tiller_->_ultrasonic->readSensor();
             }
@@ -122,7 +129,7 @@ void Homing::poll(){
             // Rotate move depending on us_phase. Phase 0 is rotate anticlockwise, phase 1 is rotate clockwise. Transition when gyro angle reaches target.
             //first time in this state, note _rotate_target is reset to -1.0 when leaving the state too
             if (_rotate_target == -1.0) {
-                 _rotate_target = _us_phase == 0 ? -PI/2 : PI/2;
+                 _rotate_target = _us_phase == 0 ? PI/2 : -PI/2;
             
                 tiller_->_gyro->resetAngle();
                 _rotate_pid->resetPID();
@@ -149,6 +156,7 @@ void Homing::poll(){
                 }
                 
             }
+            return;
         }
 
         case HC_STRAFE_ALIGN:{
@@ -175,7 +183,7 @@ void Homing::poll(){
                 vtheta = _angle_pid->update(0.0 - heading); // 0.0 heading was zeroed in HC_ALIGN_PERP
             }
             usval = -1.0;
-            while (usval < 0.0 && usval >= 300.0){
+            while (usval < 0.0 || usval >= 300.0){
                 //ensure sensible reading is read from ultrasonic (between 0 and 300 cm, otherwise likely a spurious reading)
                 usval = tiller_->_ultrasonic->readSensor();
             }

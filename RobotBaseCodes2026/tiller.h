@@ -25,10 +25,10 @@ private:
     int home_wall_sensor_ = -1;         // 0=left, 1=right, -1=not set
 
 public:
-    ShortRangeIR* _front_left_ir;
-    ShortRangeIR* _front_right_ir;
-    LongRangeIR* _side_right_ir;
-    LongRangeIR* _side_left_ir;
+    LongRangeIR* _front_left_ir;
+    LongRangeIR* _front_right_ir;
+    ShortRangeIR* _rear_right_ir;
+    ShortRangeIR* _rear_left_ir;
     Gyroscope* _gyro;
     Ultrasonic* _ultrasonic;
     driveMotors* _motors;

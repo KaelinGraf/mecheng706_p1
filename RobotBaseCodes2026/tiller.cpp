@@ -61,10 +61,10 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
   // Initialise hardware first, so states can safely access sensors/motors
   _gyro = new Gyroscope(bno08x, sensorValue, SerialCom);
   _motors = new driveMotors();
-  _front_left_ir = new ShortRangeIR(front_left_ir_pin);
-  _front_right_ir = new ShortRangeIR(front_right_ir_pin);
-  _side_left_ir = new LongRangeIR(side_left_ir_pin);
-  _side_right_ir = new LongRangeIR(side_right_ir_pin);
+  _front_left_ir = new LongRangeIR(front_left_ir_pin);
+  _front_right_ir = new LongRangeIR(front_right_ir_pin);
+  _rear_left_ir = new ShortRangeIR(rear_left_ir_pin);
+  _rear_right_ir = new ShortRangeIR(rear_right_ir_pin);
   _ultrasonic = new Ultrasonic(ECHO_PIN, TRIG_PIN, MAX_DIST);
   ultrasonicISR = _ultrasonic;
   _motors->attatchAll();
@@ -124,21 +124,21 @@ void Tiller::pollState() {
 };
 
 void Tiller::testSensors(){
-  print("gyro: rad, itegral");
-  println(_gyro->readSensor());
-  println(_gyro->getAngle());
+  // print("gyro: rad, itegral");
+  // println(_gyro->readSensor());
+  // println(_gyro->getAngle());
 
-  print("ultrasonic");
-  println(_ultrasonic->readSensor());
+  // print("ultrasonic");
+  // println(_ultrasonic->readSensor());
 
-  print("IR senors (lf,rf,ls,rs):");
+  println("IR senors (lf,rf,LR,RR):");
   println(_front_left_ir->readSensor());
   println(_front_right_ir->readSensor());
-  println(_side_left_ir->readSensor());
-  println(_side_right_ir->readSensor());
-  println("IR kalman:(l,r) ");
-  println(_side_left_ir->readSensorKalman());
-  print(_side_right_ir->readSensorKalman());
+  println(_rear_left_ir->readSensor());
+  println(_rear_right_ir->readSensor());
+  // println("IR kalman:(l,r) ");
+  // println(_side_left_ir->readSensor());
+  // print(_side_right_ir->readSensor());
   delay(200);
 
 }

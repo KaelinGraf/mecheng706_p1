@@ -116,8 +116,8 @@ void Initialising::begin() {
   // IR sensors
   pinMode(front_right_ir_pin, INPUT);
   pinMode(front_left_ir_pin, INPUT);
-  pinMode(side_right_ir_pin, INPUT);
-  pinMode(side_left_ir_pin, INPUT);
+  pinMode(rear_right_ir_pin, INPUT);
+  pinMode(rear_left_ir_pin, INPUT);
 
   // setupWireless();
 }
