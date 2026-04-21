@@ -208,10 +208,10 @@ void Homing::poll(){
             if (_us_phase == 2){
                 //TO BE HERE, WE NEED TO "TILL" TILL WALL WITHOUT STRAFING
                 tiller_->println("Homing: tilling to wall");
-                tiller_->switchState(State::TILL);
+                tiller_->switchState(State::TILL, {US_DIST_CM, true});
             }else{
                 tiller_->println("Homing: homing complete, ready to start tiling");
-                tiller_->switchState(State::TILL);
+                tiller_->switchState(State::TILL, {US_DIST_CM, false});
             }
 
             break;

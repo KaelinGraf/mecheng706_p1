@@ -3,7 +3,7 @@
 #include "tiller.h"
 
 void Stopped::begin() {
-  Serial.println("Stopped");
+  tiller_->println("Stopped");
 }
 
 void Stopped::end() {
