@@ -27,13 +27,13 @@ void Strafe::poll() {
   float dist_avg = 15.0;
   float angle_err = 0.0;
 
-  if (tiller->getTurnCount() % 2 == 0) {
-    float long_ir_left = tiller_->_side_left_ir->readSensor();
-    float long_ir_right = tiller_->_side_right_ir->readSensor();
+  if (tiller_->getTurnCount() % 2 == 0) {
+    float long_ir_left = tiller_->_rear_left_ir->readSensor();
+    float long_ir_right = tiller_->_rear_right_ir->readSensor();
     // Even turn count → left wall is home wall → use left long-range IR for forward distance
     if (long_ir_left > 0.0 and long_ir_right > 0.0) {
       dist_avg = (long_ir_left + long_ir_right) / 2;
-      angle_err = tiller_->_side_left_ir->readSensor() - tiller_->_side_right_ir->readSensor();  // simple angle error estimate from front/side IR difference
+      angle_err = tiller_->_rear_left_ir->readSensor() - tiller_->_rear_right_ir->readSensor();  // simple angle error estimate from front/side IR difference
     }
   } else {
     float short_ir_left = tiller_->_front_left_ir->readSensor();
