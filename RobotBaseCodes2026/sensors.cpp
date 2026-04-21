@@ -218,7 +218,7 @@ float Ultrasonic::readSensor() {
   t1 = getSentTime();
 
   if (t2 < t1){
-    Serial.println("UltraSonic Out of sync, return last cm");
+    //Serial.println("UltraSonic Out of sync, return last cm");
     t1 = getLastSent();
   }
 
@@ -235,9 +235,9 @@ float Ultrasonic::readSensor() {
     if (pulse_width > _max_dist) {
       Serial.println("HC-SR04: Out of range");
     } else {
-      Serial.print("HC-SR04:");
-      Serial.print(cm);
-      Serial.println("cm");
+      //Serial.print("HC-SR04:");
+      //Serial.print(cm);
+      //Serial.println("cm");
     }
   }
   runUltrasonic();

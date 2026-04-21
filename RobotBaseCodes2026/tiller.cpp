@@ -128,8 +128,8 @@ void Tiller::testSensors(){
   // println(_gyro->readSensor());
   // println(_gyro->getAngle());
 
-  // print("ultrasonic");
-  // println(_ultrasonic->readSensor());
+  print("ultrasonic");
+  println(_ultrasonic->readSensor());
 
   println("IR senors (lf,rf,LR,RR):");
   println(_front_left_ir->readSensor());
