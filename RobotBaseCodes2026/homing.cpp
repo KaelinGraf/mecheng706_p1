@@ -228,7 +228,7 @@ void Homing::poll(){
         
         case HC_DONE:
             stopDrive();
-            if (_us_phase == 2){
+            if (_us_phase == 1){
                 //TO BE HERE, WE NEED TO "TILL" TILL WALL WITHOUT STRAFING
                 tiller_->println("Homing: tilling to wall");
                 tiller_->switchState(State::TILL, {tiller_->get_y_tgt(), false, true});
