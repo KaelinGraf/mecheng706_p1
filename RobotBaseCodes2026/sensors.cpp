@@ -103,14 +103,15 @@ float ShortRangeIR::applyCalibration(float adc_voltage){
 float LongRangeIR::readSensor(){
   long curr_ms = millis();
   if ((curr_ms - _last_millis) <= LONGRANGE_LATENCY){ //in the event of "double read" 
-    return _prev_reading;
+    return -3.0;
+    //return _prev_reading;
   }
   float curr_dist = applyCalibration(readVoltage(_read_pin));
 
-  if (abs(curr_dist - _prev_reading) > 8 && !(curr_ms - _last_millis > 2*LONGRANGE_LATENCY)) {
-    // delta too high, ignore reading
-    return _prev_reading;
-  }
+  // if (abs(curr_dist - _prev_reading) > 8 && !(curr_ms - _last_millis > 2*LONGRANGE_LATENCY)) {
+  //   // delta too high, ignore reading
+  //   return _prev_reading;
+  // }
   _last_millis = curr_ms;
   return curr_dist;
 }
@@ -127,13 +128,14 @@ float LongRangeIR::applyCalibration(float adc_voltage){
   else if (adc_voltage > _max_voltage){
     return -1.0;
   }
-  float val =  (1/((adc_voltage - c) / m));
-  if (val > 70.0 || val < 11.0){
-    return -1.0;
-  }
-  else{
-    return val;
-  }
+
+  // float val =  (1/((adc_voltage - c) / m));
+  // if (val > 70.0 || val < 11.0){
+  //   return -1.0;
+  // }
+  //else{
+  return val;
+  //}
 }
 
 float LongRangeIR::readSensorKalman() {

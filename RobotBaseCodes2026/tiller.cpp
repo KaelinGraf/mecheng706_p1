@@ -124,16 +124,18 @@ void Tiller::pollState() {
 };
 
 void Tiller::testSensors(){
-  print("gyro: rad, itegral");
-  println(_gyro->readSensor());
-  println(_gyro->getAngle());
+  // print("gyro: rad, itegral");
+  // println(_gyro->readSensor());
+  // println(_gyro->getAngle());
 
-  print("ultrasonic");
-  println(_ultrasonic->readSensor());
+  // print("ultrasonic");
+  // println(_ultrasonic->readSensor());
 
   println("IR senors (lf,rf,LR,RR):");
-  println(_front_left_ir->readSensorRaw());
-  println(_front_left_ir->readSensor());
+  float sensor_voltage = _front_left_ir->readSensorRaw();
+  float calibrated = _front_left_ir->applyCalibration(sensor_voltage);
+  println(sensor_voltage);
+  println(calibrated);
   // println(_front_right_ir->readSensorRaw());
   // println(_rear_left_ir->readSensorRaw());
   // println(_rear_right_ir->readSensorRaw());
@@ -141,7 +143,6 @@ void Tiller::testSensors(){
   // println(_side_left_ir->readSensor());
   // print(_side_right_ir->readSensor());
 
-  delay(200);
 
 }
 
