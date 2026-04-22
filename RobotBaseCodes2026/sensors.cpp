@@ -75,7 +75,7 @@ float ShortRangeIR::readSensor(){
 }
 
 float ShortRangeIR::getAvg(){
-  float val = this->readSensorFiltered(5);
+  float val = this->readSensor();
   if (val != -1.0){
     _prev_measurements->push(val);
   }
@@ -115,7 +115,7 @@ float LongRangeIR::readSensor(){
   return new_reading;
 }
 float LongRangeIR::getAvg(){
-  float val = this->readSensorFiltered(5);
+  float val = this->readSensor();
   if (val != -1.0){
     _prev_measurements->push(val);
   }

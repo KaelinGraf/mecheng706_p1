@@ -25,18 +25,18 @@ void Till::begin(TillData data) {
   
   _from_homing = data.from_homing;
   
-  if (tiller_->getTurnCount() % 2 ==0) {
-    for (int i = 0; i < 2; i++) {
-      tiller_->_front_left_ir->getAvg();
-      tiller_->_front_right_ir->getAvg();
-    }
-  } else {
-    for (int i = 0; i < 2; i++) {
-      tiller_->_rear_left_ir->getAvg();
-      tiller_->_rear_right_ir->getAvg();
-    }
-  }tiller_->_ultrasonic->getAvg();
-  tiller_->_ultrasonic->getAvg();
+  // if (tiller_->getTurnCount() % 2 ==0) {
+  //   for (int i = 0; i < 2; i++) {
+  //     tiller_->_front_left_ir->getAvg();
+  //     tiller_->_front_right_ir->getAvg();
+  //   }
+  // } else {
+  //   for (int i = 0; i < 2; i++) {
+  //     tiller_->_rear_left_ir->getAvg();
+  //     tiller_->_rear_right_ir->getAvg();
+  //   }
+  // }tiller_->_ultrasonic->getAvg();
+  // tiller_->_ultrasonic->getAvg();
   endzone_count_ = 0;
 
   _gyro_pid = new PID<float>(100.0, 20.0, 0.0, 0.0, true, -100.0, 100.0); 
@@ -45,9 +45,14 @@ void Till::begin(TillData data) {
 
 void Till::end() {
   tiller_->println("stopped tilling");
+  tiller_->print("Y before inc: ");
+  tiller_->println(tiller_->get_y_tgt());
   if(!_from_homing){
     tiller_->incTurnCount();
   }
+  tiller_->print("Y after inc: ");
+  tiller_->println(tiller_->get_y_tgt());
+
   delete _gyro_pid;
   _gyro_pid = nullptr;
   delete _y_pid;
@@ -92,11 +97,11 @@ void Till::poll() {
 
   float u_dist = (left_dist + right_dist) / 2;
 
-  if (u_dist > 0.0 && u_dist < 28.0 && left_dist > 0 && right_dist > 0) {
+  if (u_dist > 0.0 && u_dist < 20.0 && left_dist > 0 && right_dist > 0) {
     endzone_count_++;
-    tiller_->print("rear left dist:  "); tiller_->println(left_dist);
-    tiller_->print("rear right dist: "); tiller_->println(right_dist);
-    tiller_->println();
+    // tiller_->print("rear left dist:  "); tiller_->println(left_dist);
+    // tiller_->print("rear right dist: "); tiller_->println(right_dist);
+    // tiller_->println();
   } else {
     endzone_count_ = 0;
   }

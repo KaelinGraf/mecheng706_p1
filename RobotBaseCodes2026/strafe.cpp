@@ -10,8 +10,10 @@ void Strafe::begin() {
   tiller_->print("turn count: "); tiller_->println(tiller_->getTurnCount());
   
   _target_y = tiller_->get_y_tgt();
+  tiller_->print("target y");
+  tiller_->println(_target_y);
 
-  if (tiller_->getTurnCount() % 2 ==0) {
+  if (tiller_->getTurnCount() % 2 ==1) {
     for (int i = 0; i < 2; i++) {
       tiller_->_front_left_ir->getAvg();
       tiller_->_front_right_ir->getAvg();
@@ -32,24 +34,26 @@ void Strafe::begin() {
 
 void Strafe::end() {
   Serial.println("stopped strafing");
+  tiller_->print("Ultrasonic: ");
+  tiller_->println(tiller_->_ultrasonic->getAvg());
 }
 
 void Strafe::poll(){  
   float ultrasonic = tiller_->_ultrasonic->readSensor();
   ultrasonic = tiller_->_ultrasonic->getAvg();
-  float wall_dist = (tiller_->getTurnCount() % 2 ==0) ? 22.0:15.0;
-  float dist_val_left = (tiller_->getTurnCount() % 2 ==0) ? tiller_->_front_left_ir->getAvg() : tiller_->_rear_left_ir->getAvg();
-  float dist_val_right = (tiller_->getTurnCount() % 2 == 0) ? tiller_->_front_right_ir->getAvg() : tiller_->_rear_right_ir->getAvg();
+  float wall_dist = (tiller_->getTurnCount() % 2 ==0) ? 17.0:10.0;
+  float dist_val_left = (tiller_->getTurnCount() % 2 ==1) ? tiller_->_front_left_ir->getAvg() : tiller_->_rear_left_ir->getAvg();
+  float dist_val_right = (tiller_->getTurnCount() % 2 == 1) ? tiller_->_front_right_ir->getAvg() : tiller_->_rear_right_ir->getAvg();
 
-  tiller_->print("left dist:  "); tiller_->println(dist_val_left);
-  tiller_->print("right dist: "); tiller_->println(dist_val_right);
+  //tiller_->print("left dist:  "); tiller_->println(dist_val_left);
+  //tiller_->print("right dist: "); tiller_->println(dist_val_right);
 
   if(ultrasonic > 0 && dist_val_left > 0 && dist_val_right > 0){
     float angle = tiller_->_gyro->getAngle();
     float vtheta = _gyro_pid->update(angle);
     float vy = _y_pid->update((_target_y - ultrasonic));
     float vx = _x_pid->update(((dist_val_left + dist_val_right)/2.0)-wall_dist);
-    if(tiller_->getTurnCount() % 2 !=0){
+    if(tiller_->getTurnCount() % 2 !=1){
       vx *= -1.0;
     }
     tiller_->_motors->writeAllMotors(vx, vy, vtheta);
@@ -65,7 +69,7 @@ void Strafe::poll(){
   }
   if(exit_count == 5){
     tiller_->println("STRAFE FINISH");
-    tiller_->switchState(State::TILL, {_target_y,tiller_->getTurnCount() % 2 !=0, false});
+    tiller_->switchState(State::TILL, {_target_y,tiller_->getTurnCount() % 2 !=1, false});
   }
 
 }
