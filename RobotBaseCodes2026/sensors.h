@@ -129,6 +129,7 @@ class Gyroscope: public Sensor{
           !_bno08x->enableReport(SH2_GYROSCOPE_CALIBRATED, 10000)) {
             _serial_com->println("IMU failed");
           }
+      
       _bno08x->enableReport(SH2_GYROSCOPE_CALIBRATED,10000);
     };
     float readSensor(bool apply_filter = false);

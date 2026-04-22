@@ -37,6 +37,7 @@ class Homing : public State {
     float _rotate_target;  // target angle in radians (±PI/2)
     int _us_phase;     // 0 = rotating anticlockwise, 1 = rotating clockwise
     HomingStage _hs;
+    int _gyro_error_count = 0;
 };
 
 

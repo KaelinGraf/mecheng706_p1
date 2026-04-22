@@ -45,7 +45,7 @@ void Strafe::end() {
 
 void Strafe::poll(){  
   float ultrasonic = tiller_->_ultrasonic->getAvg();
-  float wall_dist = (tiller_->getTurnCount() % 2 ==0) ? 12.0:5.0;
+  float wall_dist = (tiller_->getTurnCount() % 2 ==0) ? 5.0:14.0;
   float dist_val_left = (tiller_->getTurnCount() % 2 ==1) ? tiller_->_front_left_ir->getAvg() : tiller_->_rear_left_ir->getAvg();
   float dist_val_right = (tiller_->getTurnCount() % 2 == 1) ? tiller_->_front_right_ir->getAvg() : tiller_->_rear_right_ir->getAvg();
 

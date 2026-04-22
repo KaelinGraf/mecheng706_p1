@@ -6,6 +6,7 @@
 #include "turn.h"
 #include "strafe.h"
 #include "initialising.h"
+#include "align.h"
 
 volatile Ultrasonic* ultrasonicISR = nullptr;
 ISR(INT4_vect) {
@@ -58,6 +59,7 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
   states_[State::TILL]         = new Till(this);
   states_[State::TURN]         = new Turn(this);
   states_[State::STRAFE]       = new Strafe(this);
+  states_[State::ALIGN] = new Align(this);
 
   // Begin initial state AFTER all hardware and states are ready
   current_state_ = states_[State::INITIALISING];

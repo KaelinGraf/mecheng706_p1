@@ -150,7 +150,15 @@ void Homing::poll(){
             tiller_->print("rotate error: ");
             tiller_->println(current_angle);
             tiller_->_motors->writeAllMotors(0, 0, -vtheta);
-            if(fabs(error) < 0.05) {
+            if(fabs(error) == 0.0){
+                tiller_->println("GYRO ERROR");
+                _gyro_error_count ++;
+                if (_gyro_error_count >= 15){
+                    _hs = HC_DRIVE_TO_WALL;
+                }
+                
+            }
+            if(fabs(error) < 0.05 && fabs(error)!= 0.0) {
                 tiller_->println();
                 tiller_->println();
                 tiller_->println("HEREHEREHEREHERHHERHEHRHERHEHRHEHRHE");

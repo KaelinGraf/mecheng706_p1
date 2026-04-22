@@ -71,7 +71,7 @@ class RingBuffer {
 
     // Helper: Calculates the average of the buffer (Great for filtering)
     float average() const {
-        if (_count == 0) return 0.0f;
+        if (_count == 0) return -1.0f;
         T sum = T();
         for (size_t i = 0; i < _count; ++i) {
             sum += _buffer[i];

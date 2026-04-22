@@ -19,8 +19,10 @@ void Till::begin(TillData data) {
   tiller_->print("From homing? ");
   tiller_->println(data.from_homing?"yes":"no");
   tiller_->print("turn count: "); tiller_->println(tiller_->getTurnCount());
+  if(data.from_homing){
+    tiller_->_gyro->resetAngle();
 
-  //tiller_->_gyro->resetAngle();
+  }
   tiller_->_ultrasonic->resetBuffer();
   tiller_->_front_left_ir->resetBuffer();
   tiller_->_front_right_ir->resetBuffer();
@@ -45,7 +47,7 @@ void Till::begin(TillData data) {
   // tiller_->_ultrasonic->getAvg();
   endzone_count_ = 0;
 
-  _gyro_pid = new PID<float>(100.0, 20.0, 0.0, 0.0, true, -100.0, 100.0); 
+  _gyro_pid = new PID<float>(120.0, 25.0, 0.0, 0.0, true, -100.0, 100.0); 
   _y_pid = new PID<float>(3.0, 0.05, 0.0, 0.0, true, -40.0, 40.0);
 }
 
@@ -112,7 +114,7 @@ void Till::poll() {
     endzone_count_ = 0;
   }
 
-  if (endzone_count_ >= 3) {
+  if (endzone_count_ >= 5) {
       tiller_->_motors->writeAllMotors(0.0,0.0,0.0);
       if(_from_homing){
         tiller_->switchState(State::TILL,{_target_y,true,false});

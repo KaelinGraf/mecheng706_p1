@@ -21,6 +21,7 @@ public:
         TURN,
         STRAFE,
         STOPPED,
+        ALIGN,
 
         // leave last, gives access to length of states
         NUM_STATES,
