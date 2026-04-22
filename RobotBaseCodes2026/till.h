@@ -29,6 +29,7 @@ class Till : public State {
     void poll() override;
   
   private:
+    bool _from_homing = false;
     int count_;
     PID<float>* _gyro_pid;
     PID<float>* _y_pid;

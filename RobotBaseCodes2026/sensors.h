@@ -97,7 +97,7 @@ class Ultrasonic: public Sensor{
     unsigned long getReturnTime(){return return_time;};
     void setLastSent(unsigned long last_sent){_last_sent = last_sent;};
     unsigned long getLastSent(){return _last_sent;};
-    inline float getAvg() { return _prev_measurements->average(); }
+    float getAvg();
     
 };
 

@@ -27,8 +27,7 @@ void Homing::begin() {
   _us_phase = 0;
   _rotate_target = -1.0;
 
-  // Reset gyro so we have a zero-heading reference for driving straight
-  tiller_->_gyro->resetAngle();
+  
 }
 
 void Homing::end() {

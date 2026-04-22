@@ -9,10 +9,10 @@ void Strafe::begin() {
   tiller_->println("strafing");
   
   _target_y = tiller_->get_y_tgt();
-  _x_pid->resetPID();
-  _y_pid->resetPID();
-  _angle_pid->resetPID();
-  _gyro_pid->resetPID();
+  // _x_pid->resetPID();
+  // _y_pid->resetPID();
+  // _angle_pid->resetPID();
+  // _gyro_pid->resetPID();
   //tiller_->_gyro->resetAngle();
 
   if (tiller_->getTurnCount() % 2 ==0) {
@@ -25,7 +25,10 @@ void Strafe::begin() {
       tiller_->_rear_left_ir->getAvg();
       tiller_->_rear_right_ir->getAvg();
     }
-  }
+  }tiller_->_ultrasonic->getAvg();
+  tiller_->_ultrasonic->getAvg();
+
+
   //_target_y = 15.0;
 
   // tiller_->print("Strafe: setpoint="); tiller_->print(_target_y);
@@ -40,6 +43,7 @@ void Strafe::end() {
 
 void Strafe::poll(){  
   float ultrasonic = tiller_->_ultrasonic->readSensor();
+  ultrasonic = tiller_->_ultrasonic->getAvg();
   float wall_dist = (tiller_->getTurnCount() % 2 ==0) ? 22.0:15.0;
   float dist_val_left = (tiller_->getTurnCount() % 2 ==0) ? tiller_->_front_left_ir->getAvg() : tiller_->_rear_left_ir->getAvg();
   float dist_val_right = (tiller_->getTurnCount() % 2 == 0) ? tiller_->_front_right_ir->getAvg() : tiller_->_rear_right_ir->getAvg();

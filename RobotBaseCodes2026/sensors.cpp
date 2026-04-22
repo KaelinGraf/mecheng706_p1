@@ -68,8 +68,9 @@ float ShortRangeIR::readSensor(){
   // }
   float new_reading = applyCalibration(readVoltage(_read_pin));
   // _last_millis = millis();
-
-  _prev_measurements->push(new_reading);
+  // if(new_reading != -1.0){
+  //   _prev_measurements->push(new_reading);
+  // }
   return new_reading;
 }
 
@@ -107,7 +108,9 @@ float LongRangeIR::readSensor(){
   float new_reading = applyCalibration(readVoltage(_read_pin));
   // _last_millis = millis();
 
-  _prev_measurements->push(new_reading);
+  // if(new_reading != -1.0){
+  //   _prev_measurements->push(new_reading);
+  // }
   
   return new_reading;
 }
@@ -224,9 +227,20 @@ float Ultrasonic::readSensor() {
   if (cm <10.0 || cm > 200.0){
     return -1.0;
   }
-  _prev_measurements->push(cm);
+  // if(cm != -1.0){
+  //   _prev_measurements->push(cm);
+  // }
   return cm;
 };
+float Ultrasonic::getAvg(){
+  float val = this->readSensorFiltered(3);
+  if (val != -1.0){
+    _prev_measurements->push(val);
+  }
+  return _prev_measurements->average(); 
+}
+  
+
 
 float Gyroscope::readSensor(bool apply_filter=false){
   if (_bno08x->wasReset()) {

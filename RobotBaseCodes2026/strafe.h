@@ -10,8 +10,8 @@ class Strafe : public State {
       _gyro_pid = new PID<float>(100.0, 20.0, 0.0, 0.0, true, -100.0, 100.0); 
 
       _angle_pid = new PID<float>(20.0, 1.0, 0.0, 0.0, true, -100.0, 100.0);
-      _x_pid = new PID<float>(5.0, 0.1, 0.0, 0.0, true, -100.0, 100.0);
-      _y_pid = new PID<float>(6.0, 0.1, 1.0, 0.0, true, -100.0, 100.0);
+      _x_pid = new PID<float>(8.0, 1.0, 0.0, 0.0, true, -100.0, 100.0);
+      _y_pid = new PID<float>(10.0, 1.0, 1.0, 0.0, true, -100.0, 100.0);
     }
     ~Strafe() {
       delete _angle_pid;

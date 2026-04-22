@@ -16,13 +16,26 @@ void Till::begin(TillData data) {
   tiller_->println(" cm");
   tiller_->print("drive foward? ");
   tiller_->println(data.drive_foward ? "yes" : "no");
+  tiller_->print("From homing? ");
+  tiller_->println(data.from_homing?"yes":"no");
 
   tiller_->_gyro->resetAngle();
-
   tilling_speed_ = data.drive_foward ? TILL_SPEED : -TILL_SPEED; // move between driving foward and backward
   
-
-  tiller_->_gyro->resetAngle();
+  _from_homing = data.from_homing;
+  
+  if (tiller_->getTurnCount() % 2 ==0) {
+    for (int i = 0; i < 2; i++) {
+      tiller_->_front_left_ir->getAvg();
+      tiller_->_front_right_ir->getAvg();
+    }
+  } else {
+    for (int i = 0; i < 2; i++) {
+      tiller_->_rear_left_ir->getAvg();
+      tiller_->_rear_right_ir->getAvg();
+    }
+  }tiller_->_ultrasonic->getAvg();
+  tiller_->_ultrasonic->getAvg();
   endzone_count_ = 0;
 
   _gyro_pid = new PID<float>(100.0, 20.0, 0.0, 0.0, true, -100.0, 100.0); 
@@ -31,7 +44,9 @@ void Till::begin(TillData data) {
 
 void Till::end() {
   tiller_->println("stopped tilling");
-  tiller_->incTurnCount();
+  if(!_from_homing){
+    tiller_->incTurnCount();
+  }
   delete _gyro_pid;
   _gyro_pid = nullptr;
   delete _y_pid;
@@ -87,7 +102,11 @@ void Till::poll() {
 
   if (endzone_count_ >= 3) {
       tiller_->_motors->writeAllMotors(0.0,0.0,0.0);
-      tiller_->switchState(State::STRAFE);
+      if(_from_homing){
+        tiller_->switchState(State::TILL,{_target_y,true,false});
+      }else{
+        tiller_->switchState(State::STRAFE);
+      }
   }
 }
 
