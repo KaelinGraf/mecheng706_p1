@@ -129,7 +129,7 @@ float LongRangeIR::applyCalibration(float adc_voltage){
     return -1.0;
   }
 
-  // float val =  (1/((adc_voltage - c) / m));
+  float val =  (1/((adc_voltage - c) / m));
   // if (val > 70.0 || val < 11.0){
   //   return -1.0;
   // }
