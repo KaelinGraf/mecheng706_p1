@@ -5,11 +5,11 @@
 #include "servo_control.h"
 #include "tiller.h"
 
-static const float TARGET_DISTANCE_CM = 18.0f; // desired distance from wall (Long Range IR blind spot is 10cm, must be >10)
+static const float TARGET_DISTANCE_CM = 5.0f; // desired distance from wall (Long Range IR blind spot is 10cm, must be >10)
 static const float ALIGN_TOLERANCE_CM = 2.0f;   // front sensors equal within this
 static const float FRONT_DETECT_CM = 20.0f;     // initial detection threshold
 static const float US_SHORT_THRESHOLD_CM = 110.0f;  // threshold to classify short side
-static const float US_DIST_CM = 105.0f;
+static const float US_DIST_CM = 10.0f;
 
 
 void Homing::begin() {
@@ -205,12 +205,12 @@ void Homing::poll(){
             tiller_->println(usval);
 
 
-            tiller_->_motors->writeAllMotors(-vx, vy, vtheta);
+            tiller_->_motors->writeAllMotors(-vx, vy, -vtheta);
 
             if (fl > 0.0 && fr > 0.0 &&
                 fabs(dist_avg - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM &&
                 fabs(angle_err) < 1.5 &&
-                fabs(US_DIST_CM - usval) <= ALIGN_TOLERANCE_CM) {
+                fabs(US_DIST_CM - usval) >= ALIGN_TOLERANCE_CM) {
                 tiller_->_motors->writeAllMotors(0, 0, 0);
                 _hs = HC_DONE;
                 tiller_->println("Homing: 3DOF strafe reached target corner");
