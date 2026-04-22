@@ -63,24 +63,22 @@ float Sensor::readSensorFiltered(int nSamples, int delayMs) {
 
 
 float ShortRangeIR::readSensor(){
-  if ((millis() - _last_millis)<=SHORTRANGE_LATENCY){ //in the event of "double read" 
-    return _prev_reading;
-  }
+  // if ((millis() - _last_millis)<=SHORTRANGE_LATENCY){ //in the event of "double read" 
+  //   return -2.0;
+  // }
   float new_reading = applyCalibration(readVoltage(_read_pin));
-  _last_millis = millis();
+  // _last_millis = millis();
 
-  if (new_reading > 0.0) { 
-      if (_prev_reading <= 0.0) {
-          _prev_reading = new_reading; // Initialize on first valid read
-      } else {
-          // Exponential moving average filter (60% history, 40% new)
-          _prev_reading = (_prev_reading * 0.6f) + (new_reading * 0.4f);
-      }
-  } else {
-      _prev_reading = new_reading; // Pass through invalid (-1.0) codes
+  _prev_measurements->push(new_reading);
+  return new_reading;
+}
+
+float ShortRangeIR::getAvg(){
+  float val = this->readSensor();
+  if (val != -1.0){
+    _prev_measurements->push(val);
   }
-  
-  return _prev_reading;
+  return _prev_measurements->average(); 
 }
 
 float ShortRangeIR::applyCalibration(float adc_voltage){
@@ -101,20 +99,26 @@ float ShortRangeIR::applyCalibration(float adc_voltage){
 }
 
 float LongRangeIR::readSensor(){
-  long curr_ms = millis();
-  if ((curr_ms - _last_millis) <= LONGRANGE_LATENCY){ //in the event of "double read" 
-    //return -3.0;
-    return _prev_reading;
-  }
-  float curr_dist = applyCalibration(readVoltage(_read_pin));
-
-  // if (abs(curr_dist - _prev_reading) > 8 && !(curr_ms - _last_millis > 2*LONGRANGE_LATENCY)) {
-  //   // delta too high, ignore reading
-  //   return _prev_reading;
+  // long curr_ms = millis();
+  // if ((curr_ms - _last_millis) <= LONGRANGE_LATENCY){ //in the event of "double read" 
+  //   //return -3.0;
+  //   return -2.0;
   // }
-  _last_millis = curr_ms;
-  return curr_dist;
+  float new_reading = applyCalibration(readVoltage(_read_pin));
+  // _last_millis = millis();
+
+  _prev_measurements->push(new_reading);
+  
+  return new_reading;
 }
+float LongRangeIR::getAvg(){
+  float val = this->readSensor();
+  if (val != -1.0){
+    _prev_measurements->push(val);
+  }
+  return _prev_measurements->average(); 
+}
+
 
 float LongRangeIR::applyCalibration(float adc_voltage){
   //Impliments the calibration profile shown on the datasheet (only for the linear region)

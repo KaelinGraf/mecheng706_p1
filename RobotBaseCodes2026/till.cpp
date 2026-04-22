@@ -14,14 +14,13 @@ void Till::begin(TillData data) {
   tiller_->print("y from wall: ");
   tiller_->print(_target_y);
   tiller_->println(" cm");
-  tiller_->print("homing?: ");
-  tiller_->println(data.homing ? "yes" : "no");
+  tiller_->print("drive foward? ");
+  tiller_->println(data.drive_foward ? "yes" : "no");
 
   tiller_->_gyro->resetAngle();
 
-  if (!data.homing) {
-    tilling_speed_ = tilling_speed_ > 0 ? -TILL_SPEED : TILL_SPEED; // move between driving foward and backward
-  }
+  tilling_speed_ = data.drive_foward ? TILL_SPEED : -TILL_SPEED; // move between driving foward and backward
+  
 
   tiller_->_gyro->resetAngle();
   endzone_count_ = 0;
@@ -31,7 +30,8 @@ void Till::begin(TillData data) {
 }
 
 void Till::end() {
-  Serial.println("stopped tilling");
+  tiller_->println("stopped tilling");
+  tiller_->incTurnCount();
   delete _gyro_pid;
   _gyro_pid = nullptr;
   delete _y_pid;
@@ -78,14 +78,14 @@ void Till::poll() {
     ? (left_dist + right_dist) / 2 
     : max(left_dist, right_dist);
 
-  if (u_dist > 0.0 && u_dist < 20.0) {
+  if (u_dist > 0.0 && u_dist < 28.0) {
     endzone_count_++;
   } else {
     endzone_count_ = 0;
   }
 
   if (endzone_count_ >= 5) {
-      tiller_->switchState(State::TURN);
+      tiller_->switchState(State::STRAFE);
   }
 }
 

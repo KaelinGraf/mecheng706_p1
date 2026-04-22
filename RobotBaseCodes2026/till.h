@@ -5,7 +5,7 @@
 #include "state.h"
 #include "pid.h"
 
-#define TILL_SPEED 85
+#define TILL_SPEED 50
 
 class Till : public State {
   public:

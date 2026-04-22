@@ -70,7 +70,7 @@ OutputType PID<OutputType>::update(float error, float derivative = 0){
   }
   filtered_derivative = (_alpha * d_term) + ((1.0f - _alpha) * _prev_derivative);
   _prev_derivative = filtered_derivative;
-  float control_effort = p_term + i_term + filtered_derivative;
+  float control_effort = p_term + i_term - filtered_derivative;
 
   if (control_effort > static_cast<float>(_output_max)){
     control_effort = _output_max;

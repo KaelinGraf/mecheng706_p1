@@ -131,11 +131,14 @@ void Tiller::testSensors(){
   // print("ultrasonic");
   // println(_ultrasonic->readSensor());
 
-  println("IR senors (lf,rf,LR,RR):");
-  float sensor_voltage = _front_left_ir->readSensorRaw();
-  float calibrated = _front_left_ir->applyCalibration(sensor_voltage);
-  println(sensor_voltage);
-  println(calibrated);
+  print("IR senors (front left: ):");
+  float lef = _front_left_ir->readSensor();
+  println(lef);
+
+  print("IR senors (front right: ):");
+  float rig = _front_right_ir->readSensor();
+  println(rig);
+
   // println(_front_right_ir->readSensorRaw());
   // println(_rear_left_ir->readSensorRaw());
   // println(_rear_right_ir->readSensorRaw());

@@ -6,7 +6,7 @@ struct StateResult;
 
 struct TillData {
     float distance; // distance ultrasonic sensor is from wall (cm)
-    bool homing;    // if true, inital pass just move to corner
+    bool drive_foward;    // if true drive foward, false = backward
 };
 
 class State
