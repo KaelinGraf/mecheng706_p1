@@ -20,7 +20,7 @@ void Till::begin(TillData data) {
   tiller_->_gyro->resetAngle();
 
   if (!data.homing) {
-    tilling_speed_ = tilling_speed_ > 0 ? -50 : 50; // move between driving foward and backward
+    tilling_speed_ = tilling_speed_ > 0 ? -TILL_SPEED : TILL_SPEED; // move between driving foward and backward
   }
 
   tiller_->_gyro->resetAngle();
@@ -67,11 +67,11 @@ void Till::poll() {
   float right_dist;
   if (tilling_speed_ > 0) {
     // foward
-    left_dist = tiller_->_front_left_ir->readSensor();
-    right_dist = tiller_->_front_right_ir->readSensor();
+    left_dist = tiller_->_front_left_ir->readSensor() - 9.5;
+    right_dist = tiller_->_front_right_ir->readSensor() - 9.5;
   } else {
-    left_dist = tiller_->_rear_left_ir->readSensor();
-    right_dist = tiller_->_rear_right_ir->readSensor();
+    left_dist = tiller_->_rear_left_ir->readSensor() - 1.5;
+    right_dist = tiller_->_rear_right_ir->readSensor() - 1.5;
   }
 
   float u_dist = left_dist > 0 && right_dist > 0 
@@ -79,17 +79,14 @@ void Till::poll() {
     : max(left_dist, right_dist);
 
   if (u_dist > 0.0 && u_dist < 20.0) {
-    //tiller_->print("ultrasonic dist");
-
-    //tiller_->print(u_dist);
     endzone_count_++;
   } else {
     endzone_count_ = 0;
   }
 
-  // if (endzone_count_ >= 5) {
-  //     tiller_->switchState(State::TURN);
-  // }
+  if (endzone_count_ >= 5) {
+      tiller_->switchState(State::TURN);
+  }
 }
 
 
