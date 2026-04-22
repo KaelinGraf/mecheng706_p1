@@ -26,7 +26,7 @@ void Till::begin(TillData data) {
   endzone_count_ = 0;
 
   _gyro_pid = new PID<float>(100.0, 20.0, 0.0, 0.0, true, -100.0, 100.0); 
-  _y_pid = new PID<float>(3.0, 0.05, 1.0, 0.0, true, -100.0, 100.0);
+  _y_pid = new PID<float>(3.0, 0.05, 0.0, 0.0, true, -40.0, 40.0);
 }
 
 void Till::end() {
@@ -55,8 +55,8 @@ void Till::poll() {
 
   y_error = current_y - _target_y;
 
-  tiller_->print("dist error: "); tiller_->println(y_error);
-  tiller_->print("heading: ");    tiller_->println(heading);
+  // tiller_->print("dist error: "); tiller_->println(y_error);
+  // tiller_->print("heading: ");    tiller_->println(heading);
   angle_control_effort = _gyro_pid->update(heading);
   y_control_effort = -_y_pid->update(y_error); // move right (negative Vy) to increase distance to left wall
   // y_control_effort = 0;
@@ -80,12 +80,14 @@ void Till::poll() {
 
   if (u_dist > 0.0 && u_dist < 28.0) {
     endzone_count_++;
+    tiller_->println(y_error);
   } else {
     endzone_count_ = 0;
   }
 
   if (endzone_count_ >= 5) {
-      tiller_->switchState(State::STRAFE);
+      // tiller_->switchState(State::STRAFE);
+      tiller_->switchState(State::TILL, {110, !(tilling_speed_ > 0)});
   }
 }
 

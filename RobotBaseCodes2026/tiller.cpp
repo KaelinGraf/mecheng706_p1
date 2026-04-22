@@ -124,29 +124,30 @@ void Tiller::pollState() {
 };
 
 void Tiller::testSensors(){
-  // print("gyro: rad, itegral");
-  // println(_gyro->readSensor());
-  // println(_gyro->getAngle());
+  print("gyro: rad, itegral");
+  println(_gyro->readSensor());
+  println(_gyro->getAngle());
+  println();
 
   // print("ultrasonic");
   // println(_ultrasonic->readSensor());
+  print("front left:");
+  float flef = _front_left_ir->readSensor();
+  println(flef);
 
-  print("IR senors (front left: ):");
-  float lef = _front_left_ir->readSensor();
+  print("front right:");
+  float frig = _front_right_ir->readSensor();
+  println(frig);
+
+  print("rear left:");
+  float lef = _rear_left_ir->readSensor();
   println(lef);
 
-  print("IR senors (front right: ):");
-  float rig = _front_right_ir->readSensor();
+  print("rear right:");
+  float rig = _rear_right_ir->readSensor();
   println(rig);
-
-  // println(_front_right_ir->readSensorRaw());
-  // println(_rear_left_ir->readSensorRaw());
-  // println(_rear_right_ir->readSensorRaw());
-  // println("IR kalman:(l,r) ");
-  // println(_side_left_ir->readSensor());
-  // print(_side_right_ir->readSensor());
-
-
+  println();
+  println();
 }
 
 bool Tiller::is_battery_voltage_OK() {
