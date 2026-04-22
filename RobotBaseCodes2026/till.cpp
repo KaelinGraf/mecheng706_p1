@@ -17,6 +17,8 @@ void Till::begin(TillData data) {
   tiller_->print("homing?: ");
   tiller_->println(data.homing ? "yes" : "no");
 
+  tiller_->_gyro->resetAngle();
+
   if (!data.homing) {
     tilling_speed_ = tilling_speed_ > 0 ? -50 : 50; // move between driving foward and backward
   }
@@ -24,8 +26,8 @@ void Till::begin(TillData data) {
   tiller_->_gyro->resetAngle();
   endzone_count_ = 0;
 
-  _gyro_pid = new PID<float>(10.0, 0.0, 0.0, 0.0, false, -100.0, 100.0); 
-  _y_pid = new PID<float>(4.0, 0.0, 1.0, 0.0, false, -100.0, 100.0);
+  _gyro_pid = new PID<float>(100.0, 20.0, 0.0, 0.0, true, -100.0, 100.0); 
+  _y_pid = new PID<float>(3.0, 0.05, 1.0, 0.0, true, -100.0, 100.0);
 }
 
 void Till::end() {
@@ -46,16 +48,18 @@ void Till::poll() {
   float heading = tiller_->_gyro->getAngle();
   last_y = current_y;
 
-  current_y = tiller_->_ultrasonic->readSensor();
+  tiller_->_ultrasonic->readSensor();
+  current_y = tiller_->_ultrasonic->getAvg();
 
   if (current_y < 0) current_y = _target_y; // fallback
-  y_error = _target_y - current_y;
 
-  tiller_->print("gyro error: "); tiller_->println(y_error);
+  y_error = current_y - _target_y;
+
   tiller_->print("dist error: "); tiller_->println(y_error);
-
+  tiller_->print("heading: ");    tiller_->println(heading);
   angle_control_effort = _gyro_pid->update(heading);
   y_control_effort = -_y_pid->update(y_error); // move right (negative Vy) to increase distance to left wall
+  // y_control_effort = 0;
   
   tiller_->_motors->writeAllMotors(tilling_speed_, y_control_effort, angle_control_effort);
 
@@ -75,17 +79,17 @@ void Till::poll() {
     : max(left_dist, right_dist);
 
   if (u_dist > 0.0 && u_dist < 20.0) {
-    tiller_->print("ultrasonic dist");
+    //tiller_->print("ultrasonic dist");
 
-    tiller_->print(u_dist);
+    //tiller_->print(u_dist);
     endzone_count_++;
   } else {
     endzone_count_ = 0;
   }
 
-  if (endzone_count_ >= 5) {
-      tiller_->switchState(State::TURN);
-  }
+  // if (endzone_count_ >= 5) {
+  //     tiller_->switchState(State::TURN);
+  // }
 }
 
 

@@ -127,5 +127,5 @@ void Initialising::end() {
 }
 
 void Initialising::poll() {
-  tiller_->switchState(State::HOMING);
+  tiller_->switchState(State::TILL, {20.0, false});
 }
