@@ -7,7 +7,10 @@ float readVoltage(uint8_t pin){
 }
 
 float Sensor::readSensor(){
-  return applyCalibration(float(analogRead(_read_pin)));
+  return applyCalibration(float(readVoltage(_read_pin)));
+}
+float Sensor::readSensorRaw(){
+  return readVoltage(_read_pin);
 }
 void Sensor::setReadPin(uint8_t new_pin){
   _read_pin = new_pin;

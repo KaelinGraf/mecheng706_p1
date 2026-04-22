@@ -132,10 +132,11 @@ void Tiller::testSensors(){
   // println(_ultrasonic->readSensor());
 
   println("IR senors (lf,rf,LR,RR):");
+  println(_front_left_ir->readSensorRaw());
   println(_front_left_ir->readSensor());
-  println(_front_right_ir->readSensor());
-  println(_rear_left_ir->readSensor());
-  println(_rear_right_ir->readSensor());
+  // println(_front_right_ir->readSensorRaw());
+  // println(_rear_left_ir->readSensorRaw());
+  // println(_rear_right_ir->readSensorRaw());
   // println("IR kalman:(l,r) ");
   // println(_side_left_ir->readSensor());
   // print(_side_right_ir->readSensor());

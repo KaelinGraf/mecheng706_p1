@@ -21,6 +21,7 @@ class Sensor{
   public:
     Sensor(uint8_t read_pin);
     virtual float readSensor();
+    float readSensorRaw();
     float readSensorFiltered(int nSamples, int delayMs = 0);
     virtual void setReadPin(uint8_t new_pin);
     virtual uint8_t getReadPin();
