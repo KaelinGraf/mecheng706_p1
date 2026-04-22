@@ -9,7 +9,6 @@ static const float TARGET_DISTANCE_CM = 5.0f; // desired distance from wall (Lon
 static const float ALIGN_TOLERANCE_CM = 2.0f;   // front sensors equal within this
 static const float FRONT_DETECT_CM = 20.0f;     // initial detection threshold
 static const float US_SHORT_THRESHOLD_CM = 110.0f;  // threshold to classify short side
-static const float US_DIST_CM = 10.0f;
 
 
 void Homing::begin() {
@@ -24,7 +23,7 @@ void Homing::begin() {
   _angle_pid = new PID<float>(12.0, 0.005, 0.0, 0.0, false, -100.0, 100.0);
   _x_pid = new PID<float>(6.0, 0.005, 0.0, 0.0, true, -100.0, 100.0);
   _y_pid = new PID<float>(8.0, 0.005, 0.0, 0.0, true, -100.0, 100.0);
-  _rotate_pid = new PID<float>(140.0, 8.0, 0.0, 0.0, true, -200.0, 200.0);
+  _rotate_pid = new PID<float>(100.0, 50.0, 0.0, 0.0, true, -100.0, 100.0);
   _us_phase = 0;
   _rotate_target = -1.0;
 
@@ -137,17 +136,27 @@ void Homing::poll(){
         case HC_ROTATE_MOVE:{
             // Rotate move depending on us_phase. Phase 0 is rotate anticlockwise, phase 1 is rotate clockwise. Transition when gyro angle reaches target.
             //first time in this state, note _rotate_target is reset to -1.0 when leaving the state too
+            
             if (_rotate_target == -1.0) {
                  _rotate_target = (_us_phase == 0) ? PI/2 : -PI/2;
             
                 tiller_->_gyro->resetAngle();
                 _rotate_pid->resetPID();
             }
+            tiller_->print("Rotate target: ");
+            tiller_->print(_rotate_target);
             float current_angle = tiller_->_gyro->getAngle();
             float error = _rotate_target - current_angle;
             float vtheta = _rotate_pid->update(error);
+            tiller_->print("rotate error: ");
+            tiller_->println(current_angle);
             tiller_->_motors->writeAllMotors(0, 0, -vtheta);
             if(fabs(error) < 0.05) {
+                tiller_->println();
+                tiller_->println();
+                tiller_->println("HEREHEREHEREHERHHERHEHRHERHEHRHEHRHE");
+                tiller_->println();
+                tiller_->println();
                 tiller_->_motors->writeAllMotors(0, 0, 0);
                 _rotate_target = -1.0; // reset for next time
                 if (_us_phase == 0) {
@@ -197,7 +206,7 @@ void Homing::poll(){
                 usval = tiller_->_ultrasonic->readSensor();
             }
             if (usval > 0.0 && usval < 300.0){
-                vy = _y_pid->update(US_DIST_CM - usval);
+                vy = _y_pid->update(tiller_->get_y_tgt() - usval);
             }
             tiller_->println("strafe printouts");
             tiller_->println(angle_err);
@@ -210,7 +219,7 @@ void Homing::poll(){
             if (fl > 0.0 && fr > 0.0 &&
                 fabs(dist_avg - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM &&
                 fabs(angle_err) < 1.5 &&
-                fabs(US_DIST_CM - usval) >= ALIGN_TOLERANCE_CM) {
+                fabs(tiller_->get_y_tgt() - usval) >= ALIGN_TOLERANCE_CM) {
                 tiller_->_motors->writeAllMotors(0, 0, 0);
                 _hs = HC_DONE;
                 tiller_->println("Homing: 3DOF strafe reached target corner");
@@ -223,10 +232,10 @@ void Homing::poll(){
             if (_us_phase == 2){
                 //TO BE HERE, WE NEED TO "TILL" TILL WALL WITHOUT STRAFING
                 tiller_->println("Homing: tilling to wall");
-                tiller_->switchState(State::TILL, {US_DIST_CM, true});
+                tiller_->switchState(State::TILL, {tiller_->get_y_tgt(), false, true});
             }else{
                 tiller_->println("Homing: homing complete, ready to start tiling");
-                tiller_->switchState(State::TILL, {US_DIST_CM, false});
+                tiller_->switchState(State::TILL, {tiller_->get_y_tgt(), true, false});
             }
 
             break;

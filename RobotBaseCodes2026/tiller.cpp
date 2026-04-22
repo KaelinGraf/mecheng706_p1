@@ -32,31 +32,14 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
   // Second half: increasing distance from far wall, stored as decreasing (use far sensor)
   float first = Y_MARGIN;
   float last  = Y_WIDTH - Y_MARGIN;
-  float abs_positions[NUM_SNAKES];
   for (int i = 0; i < NUM_SNAKES; i++) {
-    abs_positions[i] = first + i * (last - first) / (NUM_SNAKES - 1);
+    y_tgts_[i] = last - i * (last - first) / (NUM_SNAKES - 1);
   }
-  for (int i = 0; i < NUM_SNAKES; i++) {
-    if (abs_positions[i] <= Y_WIDTH / 2.0) {
-      y_tgts_[i] = abs_positions[i];              // distance from home wall
-      use_far_[i] = false;
-    } else {
-      y_tgts_[i] = Y_WIDTH - abs_positions[i];    // distance from far wall
-      use_far_[i] = true;
-    }
-  }
-  curr_y_idx_ = 0;
-  turn_count_ = 1;
+
+  turn_count_ = 0;
   home_wall_sensor_ = -1;
 
-  // Print generated targets
-  SerialCom->println("Y targets (sensor distances):");
-  for (int i = 0; i < NUM_SNAKES; i++) {
-    SerialCom->print("  ["); SerialCom->print(i); SerialCom->print("] ");
-    SerialCom->print(y_tgts_[i]); SerialCom->print(" cm (");
-    SerialCom->print(use_far_[i] ? "far" : "home");
-    SerialCom->println(" sensor)");
-  }
+
 
   // Initialise hardware first, so states can safely access sensors/motors
   _gyro = new Gyroscope(bno08x, sensorValue, SerialCom);
@@ -81,7 +64,7 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
   current_state_->begin();
 }
 
-bool Tiller::switchState(State::Name newState, TillData data = {-1.0, false}) {
+bool Tiller::switchState(State::Name newState, TillData data = {-1.0, false, false}) {
 // 1. End the current state
     if (current_state_) {
         current_state_->end();

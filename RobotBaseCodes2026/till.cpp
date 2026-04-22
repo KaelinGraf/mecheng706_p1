@@ -74,20 +74,20 @@ void Till::poll() {
     right_dist = tiller_->_rear_right_ir->readSensor() - 1.5;
   }
 
-  float u_dist = left_dist > 0 && right_dist > 0 
-    ? (left_dist + right_dist) / 2 
-    : max(left_dist, right_dist);
+  float u_dist = (left_dist + right_dist) / 2;
 
-  if (u_dist > 0.0 && u_dist < 28.0) {
+  if (u_dist > 0.0 && u_dist < 28.0 && left_dist > 0 && right_dist > 0) {
     endzone_count_++;
-    tiller_->println(y_error);
+    tiller_->print("rear left dist:  "); tiller_->println(left_dist);
+    tiller_->print("rear right dist: "); tiller_->println(right_dist);
+    tiller_->println();
   } else {
     endzone_count_ = 0;
   }
 
-  if (endzone_count_ >= 5) {
-      // tiller_->switchState(State::STRAFE);
-      tiller_->switchState(State::TILL, {110, !(tilling_speed_ > 0)});
+  if (endzone_count_ >= 3) {
+      tiller_->_motors->writeAllMotors(0.0,0.0,0.0);
+      tiller_->switchState(State::STRAFE);
   }
 }
 
