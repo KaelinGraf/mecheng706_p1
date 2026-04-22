@@ -5,7 +5,7 @@
 #include "state.h"
 #include "pid.h"
 
-#define TILL_SPEED 50
+#define TILL_SPEED 100
 
 class Till : public State {
   public:
@@ -13,7 +13,7 @@ class Till : public State {
       _gyro_pid = nullptr;
       _y_pid = nullptr;
       endzone_count_ = 0;
-      tilling_speed_ = 50;
+      tilling_speed_ = TILL_SPEED;
     }
     ~Till() {};
     enum SIDE_SENSOR{
@@ -34,7 +34,7 @@ class Till : public State {
     PID<float>* _gyro_pid;
     PID<float>* _y_pid;
     int endzone_count_;
-    int8_t tilling_speed_; // 50 foward, -50 backward
+    int tilling_speed_; // 50 foward, -50 backward
 };
 
 

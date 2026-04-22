@@ -47,8 +47,8 @@ void Till::begin(TillData data) {
   // tiller_->_ultrasonic->getAvg();
   endzone_count_ = 0;
 
-  _gyro_pid = new PID<float>(120.0, 25.0, 0.0, 0.0, true, -100.0, 100.0); 
-  _y_pid = new PID<float>(3.0, 0.05, 0.0, 0.0, true, -40.0, 40.0);
+  _gyro_pid = new PID<float>(300.0, 25.0, 0.0, 0.0, true, -60.0, 60.0); 
+  _y_pid = new PID<float>(6.0, 0.5, 0.0, 0.0, true, -100.0, 100.0);
 }
 
 void Till::end() {
@@ -89,7 +89,13 @@ void Till::poll() {
   angle_control_effort = _gyro_pid->update(heading);
   y_control_effort = -_y_pid->update(y_error); // move right (negative Vy) to increase distance to left wall
   // y_control_effort = 0;
-  
+
+  tiller_->println("CONTROL EFFORTS: ");
+  tiller_->println(tilling_speed_);
+  tiller_->println(y_control_effort);
+  tiller_->println(angle_control_effort);
+  tiller_->println(y_error);
+  tiller_->println();
   tiller_->_motors->writeAllMotors(tilling_speed_, y_control_effort, angle_control_effort);
 
   float left_dist;
@@ -107,9 +113,6 @@ void Till::poll() {
 
   if (u_dist > 0.0 && u_dist < 20.0 && left_dist > 0 && right_dist > 0) {
     endzone_count_++;
-    // tiller_->print("rear left dist:  "); tiller_->println(left_dist);
-    // tiller_->print("rear right dist: "); tiller_->println(right_dist);
-    // tiller_->println();
   } else {
     endzone_count_ = 0;
   }
