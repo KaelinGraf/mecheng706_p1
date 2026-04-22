@@ -27,7 +27,7 @@ void Till::begin(TillData data) {
   endzone_count_ = 0;
 
   _gyro_pid = new PID<float>(100.0, 20.0, 0.0, 0.0, true, -100.0, 100.0); 
-  _y_pid = new PID<float>(2.0, 0.05, 1.0, 0.0, true, -100.0, 100.0);
+  _y_pid = new PID<float>(3.0, 0.05, 1.0, 0.0, true, -100.0, 100.0);
 }
 
 void Till::end() {
