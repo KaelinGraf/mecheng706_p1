@@ -233,8 +233,8 @@ float Ultrasonic::readSensor() {
   return cm;
 };
 float Ultrasonic::getAvg(){
-  float val = this->readSensorFiltered(3);
-  if (val != -1.0){
+  float val = this->readSensor();
+  if (val != -1.0 && val <= 250.0){
     _prev_measurements->push(val);
   }
   return _prev_measurements->average(); 

@@ -108,7 +108,7 @@ void Homing::poll(){
                 }
                 else if (_us_phase == 2){
                     tiller_->println("Homing: perpendicular and at target distance after 2nd rotate, ready to strafe");
-                    _hs = HC_STRAFE_ALIGN;
+                    _hs = HC_DONE;
                 }
             }
             return;
@@ -232,9 +232,9 @@ void Homing::poll(){
                 //TO BE HERE, WE NEED TO "TILL" TILL WALL WITHOUT STRAFING
                 tiller_->println("Homing: tilling to wall");
                 tiller_->switchState(State::TILL, {tiller_->get_y_tgt(), false, true});
-            }else{
-                tiller_->println("Homing: homing complete, ready to start tiling");
-                tiller_->switchState(State::TILL, {tiller_->get_y_tgt(), true, false});
+            }else if (_us_phase == 2){
+                tiller_->println("Homing: aligned, strafing to wall");
+                tiller_->switchState(State::STRAFE);
             }
 
             break;

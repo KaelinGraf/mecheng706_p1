@@ -44,6 +44,8 @@ class ShortRangeIR: public Sensor{
     float readSensor() override;
     float applyCalibration(float adc_voltage) override;
     float getAvg();
+    inline void resetBuffer(){this->_prev_measurements->reset();};
+
 };
 
 
@@ -72,6 +74,8 @@ class LongRangeIR: public Sensor{
     float applyCalibration(float adc_voltage) override;
     inline float getKalmanEst() {return _kalman_estimate; };
     float getAvg();
+    inline void resetBuffer(){this->_prev_measurements->reset();};
+
 };
 
 class Ultrasonic: public Sensor{
@@ -98,6 +102,8 @@ class Ultrasonic: public Sensor{
     void setLastSent(unsigned long last_sent){_last_sent = last_sent;};
     unsigned long getLastSent(){return _last_sent;};
     float getAvg();
+    inline void resetBuffer(){this->_prev_measurements->reset();};
+
     
 };
 
@@ -111,21 +117,25 @@ class Gyroscope: public Sensor{
     HardwareSerial* _serial_com;
     RingBuffer<float,4>* _prev_measurements;
 
+
     
   public:
     Gyroscope(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom):Sensor(uint8_t(0)),_bno08x(bno08x),_sensorValue(sensorValue),_serial_com(SerialCom){
       _prev_measurements = new RingBuffer<float,4>();
       _prev_micros = micros();
       _serial_com->println("Enabling Gyroscope...");
-      if (!_bno08x->begin_I2C() ||
+
+      while (!_bno08x->begin_I2C() ||
           !_bno08x->enableReport(SH2_GYROSCOPE_CALIBRATED, 10000)) {
             _serial_com->println("IMU failed");
           }
+      _bno08x->enableReport(SH2_GYROSCOPE_CALIBRATED,10000);
     };
     float readSensor(bool apply_filter = false);
     inline float applyCalibration(float adc_voltage) override {return adc_voltage;};
     void resetAngle() { _rad = 0.0; _prev_micros = micros(); }
     float getAngle() { return _rad; }
+
 
     
 };

@@ -78,6 +78,13 @@ class RingBuffer {
         }
         return static_cast<float>(sum) / _count;
     }
+
+    void reset(){
+        for(size_t i = 0; i<_count; i++){
+            _buffer[i] = T();
+        }
+        _count = 0;
+    }
 };
 
 #endif // UTILS_H
