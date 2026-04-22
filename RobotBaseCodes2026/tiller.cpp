@@ -46,7 +46,7 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
     }
   }
   curr_y_idx_ = 0;
-  turn_count_ = 0;
+  turn_count_ = 1;
   home_wall_sensor_ = -1;
 
   // Print generated targets
