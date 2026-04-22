@@ -18,6 +18,7 @@ void Till::begin(TillData data) {
   tiller_->println(data.drive_foward ? "yes" : "no");
   tiller_->print("From homing? ");
   tiller_->println(data.from_homing?"yes":"no");
+  tiller_->print("turn count: "); tiller_->println(tiller_->getTurnCount());
 
   tiller_->_gyro->resetAngle();
   tilling_speed_ = data.drive_foward ? TILL_SPEED : -TILL_SPEED; // move between driving foward and backward
