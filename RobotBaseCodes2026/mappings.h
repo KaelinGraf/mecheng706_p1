@@ -31,10 +31,10 @@
 #define min_duty_turret  900
 #define neutral_turret  1500
 
-#define front_left_ir_pin A3
-#define front_right_ir_pin A4
-#define rear_right_ir_pin A1
-#define rear_left_ir_pin A2
+#define front_left_ir_pin A1
+#define front_right_ir_pin A2
+#define rear_right_ir_pin A4
+#define rear_left_ir_pin A3
 
 
 #define gyro_omega_0_kp 1

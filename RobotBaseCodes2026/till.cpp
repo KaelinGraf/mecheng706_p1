@@ -52,7 +52,10 @@ void Till::poll() {
   if (fabs(current_y-last_y) > 5.0);
   y_error = _target_y - current_y;
 
-  angle_control_effort = _gyro_pid->update(0.0 + heading);
+  tiller_->print("gyro error: "); tiller_->println(y_error);
+  tiller_->print("dist error: "); tiller_->println(y_error);
+
+  angle_control_effort = _gyro_pid->update(heading);
   y_control_effort = -_y_pid->update(y_error); // move right (negative Vy) to increase distance to left wall
   
   tiller_->_motors->writeAllMotors(tilling_speed_, y_control_effort, angle_control_effort);
