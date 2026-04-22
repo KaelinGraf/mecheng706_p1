@@ -49,7 +49,6 @@ void Till::poll() {
   current_y = tiller_->_ultrasonic->readSensor();
 
   if (current_y < 0) current_y = _target_y; // fallback
-  if (fabs(current_y-last_y) > 5.0);
   y_error = _target_y - current_y;
 
   tiller_->print("gyro error: "); tiller_->println(y_error);

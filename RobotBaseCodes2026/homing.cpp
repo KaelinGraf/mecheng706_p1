@@ -7,7 +7,7 @@
 
 static const float TARGET_DISTANCE_CM = 18.0f; // desired distance from wall (Long Range IR blind spot is 10cm, must be >10)
 static const float ALIGN_TOLERANCE_CM = 2.0f;   // front sensors equal within this
-static const float FRONT_DETECT_CM = 30.0f;     // initial detection threshold
+static const float FRONT_DETECT_CM = 20.0f;     // initial detection threshold
 static const float US_SHORT_THRESHOLD_CM = 110.0f;  // threshold to classify short side
 static const float US_DIST_CM = 105.0f;
 
@@ -25,6 +25,11 @@ void Homing::begin() {
   _x_pid = new PID<float>(6.0, 0.005, 0.0, 0.0, true, -100.0, 100.0);
   _y_pid = new PID<float>(8.0, 0.005, 0.0, 0.0, true, -100.0, 100.0);
   _rotate_pid = new PID<float>(140.0, 8.0, 0.0, 0.0, true, -200.0, 200.0);
+  _us_phase = 0;
+  _rotate_target = -1.0;
+
+  // Reset gyro so we have a zero-heading reference for driving straight
+  tiller_->_gyro->resetAngle();
 }
 
 void Homing::end() {
@@ -45,27 +50,31 @@ void Homing::poll(){
     // tiller_->print("HS: ");
     // tiller_->println(_hs);
     switch (_hs) {
-        case HC_DRIVE_TO_WALL:
-            tiller_->println("Homing: driving forward to find wall");
-            forward(120); // Using lambda
+        case HC_DRIVE_TO_WALL:{
+            // Drive in reverse with gyro heading correction to prevent arcing
+            float heading = tiller_->_gyro->getAngle();
+            float vtheta = _angle_pid->update(0.0 - heading); // hold zero heading
+            tiller_->_motors->writeAllMotors(-100, 0, -vtheta);
             
-            fl = tiller_->_front_left_ir->readSensor();
-            fr = tiller_->_front_right_ir->readSensor();
+            fl = tiller_->_rear_left_ir->readSensor();
+            fr = tiller_->_rear_right_ir->readSensor();
                 
-            //both sensors in range, switch to aligning stage.
-            if ((fl > 0 && fl < FRONT_DETECT_CM) && (fr > 0 && fr < FRONT_DETECT_CM)) {
+            // Either sensor detecting wall is sufficient to transition;
+            // the align_perp stage will handle straightening out.
+            if ((fl > 0 && fl < FRONT_DETECT_CM) || (fr > 0 && fr < FRONT_DETECT_CM)) {
                 stopDrive();
                 _hs = HC_ALIGN_PERP;
-                tiller_->println("Homing: wall detected by front sensor");
+                tiller_->println("Homing: wall detected by rear sensor");
                 return;
             }
             return;
+        }
         case HC_ALIGN_PERP:{
             //tiller_->print("align perp");
             // Aligning perpendicular to wall using front IR sensors
             // Takes difference of front left and right IRs to estimate angle, average for distance
-            fl = tiller_->_front_left_ir->readSensor();
-            fr = tiller_->_front_right_ir->readSensor();
+            fl = tiller_->_rear_left_ir->readSensor();
+            fr = tiller_->_rear_right_ir->readSensor();
 
             float angle_err = 0.0;
             float dist_avg;
@@ -83,7 +92,7 @@ void Homing::poll(){
                 float vx = _x_pid->update(dist_avg - TARGET_DISTANCE_CM);
                 float vtheta = _angle_pid->update(angle_err);
 
-                tiller_->_motors->writeAllMotors(vx, 0, vtheta);
+                tiller_->_motors->writeAllMotors(-vx, 0, -vtheta);
                 // tiller_->println("applying efforts (vx vy vtheta)");
                 // tiller_->println(vx);
                 // tiller_->println(vtheta);
@@ -129,7 +138,7 @@ void Homing::poll(){
             // Rotate move depending on us_phase. Phase 0 is rotate anticlockwise, phase 1 is rotate clockwise. Transition when gyro angle reaches target.
             //first time in this state, note _rotate_target is reset to -1.0 when leaving the state too
             if (_rotate_target == -1.0) {
-                 _rotate_target = _us_phase == 0 ? PI/2 : -PI/2;
+                 _rotate_target = (_us_phase == 0) ? PI/2 : -PI/2;
             
                 tiller_->_gyro->resetAngle();
                 _rotate_pid->resetPID();
@@ -162,8 +171,8 @@ void Homing::poll(){
         case HC_STRAFE_ALIGN:{
             // Strafe align using front short range IR for angle and x dist, and ultrasonic for Y distance. Transition when all are within tolerance.
             // PID-based continuous 3DOF strafe alignment into the corner
-            fl = tiller_->_front_left_ir->readSensor();
-            fr = tiller_->_front_right_ir->readSensor();
+            fl = tiller_->_rear_left_ir->readSensor();
+            fr = tiller_->_rear_right_ir->readSensor();
             
             float dist_avg = TARGET_DISTANCE_CM;
             float angle_err = 0.0;
@@ -190,7 +199,13 @@ void Homing::poll(){
             if (usval > 0.0 && usval < 300.0){
                 vy = _y_pid->update(US_DIST_CM - usval);
             }
-            tiller_->_motors->writeAllMotors(vx, vy, vtheta);
+            tiller_->println("strafe printouts");
+            tiller_->println(angle_err);
+            tiller_->println(-vx);
+            tiller_->println(usval);
+
+
+            tiller_->_motors->writeAllMotors(-vx, vy, vtheta);
 
             if (fl > 0.0 && fr > 0.0 &&
                 fabs(dist_avg - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM &&

@@ -99,10 +99,10 @@ void setup(void)
 void loop(void) // main loop
 {
   tiller->pollState();
-  if (millis() - lastSensPrint > 100) {
-    tiller->testSensors();
-     lastSensPrint = millis();
-   }
+  // if (millis() - lastSensPrint > 100) {
+  //   tiller->testSensors();
+  //    lastSensPrint = millis();
+  //  }
 }
 
 void printBluetooth()

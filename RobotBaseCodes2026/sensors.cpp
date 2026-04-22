@@ -103,8 +103,8 @@ float ShortRangeIR::applyCalibration(float adc_voltage){
 float LongRangeIR::readSensor(){
   long curr_ms = millis();
   if ((curr_ms - _last_millis) <= LONGRANGE_LATENCY){ //in the event of "double read" 
-    return -3.0;
-    //return _prev_reading;
+    //return -3.0;
+    return _prev_reading;
   }
   float curr_dist = applyCalibration(readVoltage(_read_pin));
 
@@ -129,7 +129,7 @@ float LongRangeIR::applyCalibration(float adc_voltage){
     return -1.0;
   }
 
-  // float val =  (1/((adc_voltage - c) / m));
+  float val =  (1/((adc_voltage - c) / m));
   // if (val > 70.0 || val < 11.0){
   //   return -1.0;
   // }

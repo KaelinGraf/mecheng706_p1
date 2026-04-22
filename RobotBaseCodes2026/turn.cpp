@@ -35,8 +35,8 @@ void Turn::poll() {
         }
     } else if (_phase == 1) {
         // SQUARE_UP phase
-        float left = tiller_->_front_left_ir->readSensor();
-        float right = tiller_->_front_right_ir->readSensor();
+        float left = tiller_->_rear_left_ir->readSensor();
+        float right = tiller_->_rear_right_ir->readSensor();
         
         float dist_avg = 15.0;
         float angle_err = 0.0;
