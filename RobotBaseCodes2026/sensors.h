@@ -78,6 +78,7 @@ class Ultrasonic: public Sensor{
     unsigned long sent_time = 0;
     unsigned long return_time = 0;
     unsigned long _last_sent = 0;
+    RingBuffer<float,3>* _prev_measurements;
   
   public:
     Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, int max_dist);
@@ -92,6 +93,7 @@ class Ultrasonic: public Sensor{
     unsigned long getReturnTime(){return return_time;};
     void setLastSent(unsigned long last_sent){_last_sent = last_sent;};
     unsigned long getLastSent(){return _last_sent;};
+    inline float getAvg() { return _prev_measurements->average(); }
     
 };
 

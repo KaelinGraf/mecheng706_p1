@@ -181,6 +181,7 @@ void Ultrasonic::runUltrasonic(){
 Ultrasonic::Ultrasonic(uint8_t echo_pin, uint8_t trigger_pin, int max_dist) 
 : Sensor(uint8_t(255)),  _echo_pin(echo_pin), _trigger_pin(trigger_pin), _max_dist(max_dist){
   initUltrasonic();
+  _prev_measurements = new RingBuffer<float, 3>();
 };
 float Ultrasonic::readSensor() {
   unsigned long t1;
@@ -188,36 +189,6 @@ float Ultrasonic::readSensor() {
   unsigned long pulse_width;
   float cm;
   float inches;
-
-  /*
-  // Wait for pulse on echo pin
-  t1 = micros();
-  while (digitalRead(_echo_pin) == 0) {
-    t2 = micros();
-    pulse_width = t2 - t1;
-    if (pulse_width > (_max_dist + 1000)) {
-      if (DIAGNOSTICS){
-        _serial_com->println("HC-SR04: NOT found");
-      }
-      return -1;
-    }
-  }
-
-  // Measure how long the echo pin was held high (pulse width)
-  // Note: the micros() counter will overflow after ~70 min
-
-  t1 = micros();
-  while (digitalRead(_echo_pin) == 1) {
-    t2 = micros();
-    pulse_width = t2 - t1;
-    if (pulse_width > (_max_dist + 1000)) {
-      if (DIAGNOSTICS){
-        _serial_com->println("HC-SR04: Out of range");
-      }
-      return;
-    }
-  }
-  */
 
   t2 = getReturnTime();
   t1 = getSentTime();
@@ -249,6 +220,7 @@ float Ultrasonic::readSensor() {
   if (cm <10.0 || cm > 200.0){
     return -1.0;
   }
+  _prev_measurements->push(cm);
   return cm;
 };
 
