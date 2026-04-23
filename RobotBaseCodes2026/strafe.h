@@ -9,9 +9,9 @@ class Strafe : public State {
     Strafe(Tiller* tiller) : State(State::STRAFE, tiller) {
       _gyro_pid = new PID<float>(100.0, 20.0, 0.0, 0.0, true, -100.0, 100.0); 
 
-      _angle_pid = new PID<float>(20.0, 1.0, 0.0, 0.0, true, -100.0, 100.0);
+      _angle_pid = new PID<float>(20.0, 1.7, 0.0, 0.0, true, -100.0, 100.0);
       _x_pid = new PID<float>(4.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
-      _y_pid = new PID<float>(6.0, 0.22, 0.0, 0.0, true, -100.0, 100.0);
+      _y_pid = new PID<float>(6.0, 0.4, 0.0, 0.0, true, -100.0, 100.0);
     }
     ~Strafe() {
       delete _angle_pid;

@@ -131,7 +131,7 @@ void Homing::poll(){
                 float one = tiller_->_ultrasonic->readBlocking();
                 float two = tiller_->_ultrasonic->readBlocking();
 
-                usval = (one + two)/2.0;
+                usval = (one > 0 && two > 0) ? (one + two)/2.0 : -1.0;
             }
             if (usval <= US_SHORT_THRESHOLD_CM){
                 tiller_->println("Homing: detected short side, till to wall");
