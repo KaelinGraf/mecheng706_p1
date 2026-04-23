@@ -111,7 +111,7 @@ void Till::poll() {
 
   float u_dist = (left_dist + right_dist) / 2;
 
-  if (u_dist > 0.0 && u_dist < 20.0 && left_dist > 0 && right_dist > 0) {
+  if (u_dist > 0.0 && u_dist < 8.0 && left_dist > 0 && right_dist > 0) {
     endzone_count_++;
   } else {
     endzone_count_ = 0;

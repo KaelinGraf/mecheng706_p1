@@ -1,3 +1,4 @@
+#include <avr/wdt.h>
 #include "homing.h"
 #include "Arduino.h"
 #include "mappings.h"
@@ -146,15 +147,18 @@ void Homing::poll(){
             float error = _rotate_target - current_angle;
             float vtheta = _rotate_pid->update(error);
             tiller_->_motors->writeAllMotors(0, 0, -vtheta);
-            if(fabs(error) == 0.0){
+            if(fabs(current_angle) == 0.0){
                 tiller_->println("GYRO ERROR");
                 _gyro_error_count ++;
                 if (_gyro_error_count >= 15){
-                    _hs = HC_DRIVE_TO_WALL;
+                    wdt_enable(WDTO_15MS);
+                    while(1){
+                        
+                    }
                 }
                 
             }
-            if(fabs(error) < 0.05 && fabs(error)!= 0.0) {
+            if(fabs(error) < 0.05 && fabs(current_angle)!= 0.0) {
                 tiller_->_motors->writeAllMotors(0, 0, 0);
                 _rotate_target = -1.0; // reset for next time
                 if (_us_phase == 0) {

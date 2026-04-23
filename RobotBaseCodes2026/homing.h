@@ -3,6 +3,7 @@
 
 #include "state.h"
 #include "pid.h"
+#include "avr/wdt.h"
 
 
 class Homing : public State {
