@@ -90,12 +90,6 @@ void Till::poll() {
   y_control_effort = -_y_pid->update(y_error); // move right (negative Vy) to increase distance to left wall
   // y_control_effort = 0;
 
-  // tiller_->println("CONTROL EFFORTS: ");
-  // tiller_->println(tilling_speed_);
-  // tiller_->println(y_control_effort);
-  // tiller_->println(angle_control_effort);
-  // tiller_->println(y_error);
-  // tiller_->println();
   tiller_->_motors->writeAllMotors(tilling_speed_, y_control_effort, angle_control_effort);
 
   float left_dist;
@@ -119,7 +113,10 @@ void Till::poll() {
 
   if (endzone_count_ >= 5) {
       tiller_->_motors->writeAllMotors(0.0,0.0,0.0);
-      if(_from_homing){
+
+      if (tiller_->isLastRun()) {
+        tiller_->switchState(State::STOPPED);
+      } else if(_from_homing){
         tiller_->switchState(State::TILL,{_target_y,true,false});
       }else{
         tiller_->switchState(State::STRAFE);

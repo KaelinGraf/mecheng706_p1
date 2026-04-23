@@ -7,8 +7,8 @@
 #include "pid.h"
 
 // Field geometry & tilling configuration
-static constexpr float Y_WIDTH = 105.0;          // field width in cm
-static constexpr float Y_MARGIN = 5.0f;           // margin from walls in cm
+static constexpr float Y_WIDTH = 96.0;          // field width in cm
+static constexpr float Y_MARGIN = 6.0f;           // margin from walls in cm
 static constexpr int   NUM_SNAKES = 8;              // number of tilling passes
 static constexpr float SENSOR_MAX_RANGE = 80.0f;    // long-range IR max in cm
 
@@ -54,4 +54,5 @@ public:
     inline void incTurnCount() { if (turn_count_ < NUM_SNAKES-1) turn_count_++;}
     inline int getHomeWallSensor() { return home_wall_sensor_; }
     inline void setHomeWallSensor(int s) { home_wall_sensor_ = s; }
+    inline bool isLastRun() {return turn_count_ == NUM_SNAKES-1;}
 };

@@ -1,11 +1,12 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 #include "tiller.h"
+#include "initialising.h"
 #include "homing.h"
 #include "till.h"
 #include "turn.h"
 #include "strafe.h"
-#include "initialising.h"
+#include "stopped.h"
 #include "align.h"
 
 volatile Ultrasonic* ultrasonicISR = nullptr;
@@ -60,11 +61,12 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
 
   // Initialise all states, prevents memory management issues
   states_[State::INITIALISING] = new Initialising(this);
-  states_[State::HOMING]  = new Homing(this);
+  states_[State::HOMING]       = new Homing(this);
   states_[State::TILL]         = new Till(this);
   states_[State::TURN]         = new Turn(this);
   states_[State::STRAFE]       = new Strafe(this);
-  states_[State::ALIGN] = new Align(this);
+  states_[State::STOPPED]      = new Stopped(this);
+  states_[State::ALIGN]        = new Align(this);
 
   // Begin initial state AFTER all hardware and states are ready
   current_state_ = states_[State::INITIALISING];
