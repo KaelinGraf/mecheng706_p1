@@ -57,7 +57,7 @@ void Align::poll() {
   }
 
   // Require it to hold the aligned position for a few frames before exiting
-  if (_stable_count >= 10) { 
+  if (_stable_count >= 5) { 
       tiller_->_motors->writeAllMotors(0, 0, 0);
       tiller_->_gyro->resetAngle(); // Dead reckon complete
       

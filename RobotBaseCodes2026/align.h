@@ -8,8 +8,8 @@ class Align : public State {
   public:
     Align(Tiller* tiller) : State(State::ALIGN, tiller) {
       // Re-using the PID tunings from the homing state
-      _angle_pid = new PID<float>(12.0, 0.005, 0.0, 0.0, false, -100.0, 100.0);
-      _x_pid = new PID<float>(6.0, 0.005, 0.0, 0.0, true, -100.0, 100.0);
+      _angle_pid = new PID<float>(14.0, 0.05, 0.0, 0.0, true, -100.0, 100.0);
+      _x_pid = new PID<float>(6.0, 0.05, 0.0, 0.0, true, -100.0, 100.0);
     }
     ~Align() {
       delete _angle_pid;
