@@ -29,6 +29,10 @@ void Till::begin(TillData data) {
   tiller_->_rear_left_ir->resetBuffer();
   tiller_->_rear_right_ir->resetBuffer();
   tilling_speed_ = data.drive_foward ? TILL_SPEED : -TILL_SPEED; // move between driving foward and backward
+
+  if (tiller_->getTurnCount() == 0 || tiller_->getTurnCount() == NUM_SNAKES-1) {
+    tilling_speed_ *= 0.9;
+  }
   
   _from_homing = data.from_homing;
 

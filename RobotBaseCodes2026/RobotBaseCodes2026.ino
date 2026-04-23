@@ -72,10 +72,10 @@ Tiller *tiller = nullptr;
 long lastSensPrint;
 void setup(void)
 {
-  EICRB |= (1 << ISC40);   // ISC41 = 0, ISC40 = 1 → ANY CHANGE
+  EICRB |= (1 << ISC40); // ISC41 = 0, ISC40 = 1 → ANY CHANGE
   EICRB &= ~(1 << ISC41);
   EIMSK |= (1 << INT4);
-  
+
   Serial.begin(115200);
   // turret_motor.attach(11);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -87,12 +87,12 @@ void setup(void)
   // Setup the Serial port and pointer, the pointer allows switching the debug
   // info through the USB port(Serial) or Bluetooth port(Serial1) with ease.
   BluetoothSerial.begin(115200);
-  
-  tiller = new Tiller(&bno08x,&sensorValue, &Serial);
+
+  tiller = new Tiller(&bno08x, &sensorValue, &Serial);
   tiller->setBluetoothSerial(&BluetoothSerial); // Enable dual-printing to Bluetooth
   tiller->print("bluetooth");
 
-  delay(1000); // settling time but no really needed
+  delay(100); // settling time but no really needed
   lastSensPrint = millis();
 
   tiller->print("time");
@@ -112,11 +112,13 @@ void setup(void)
 void loop(void) // main loop
 {
   tiller->pollState();
-  if (millis() - lastSensPrint > 100) {
+  if (millis() - lastSensPrint > 100)
+  {
     //  tiller->testSensors();
-    tiller->timeStepData();
+    if (tiller->getCurrentState() != State::HOMING)
+      tiller->timeStepData();
     lastSensPrint = millis();
-   }
+  }
 }
 
 void printBluetooth()
