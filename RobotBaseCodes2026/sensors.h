@@ -119,6 +119,7 @@ class Gyroscope: public Sensor{
     uint32_t _prev_micros = 0.0;
     HardwareSerial* _serial_com;
     RingBuffer<float,4>* _prev_measurements;
+    float _deadband = 0.01;
 
 
     

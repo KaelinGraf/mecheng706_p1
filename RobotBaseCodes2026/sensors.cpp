@@ -341,7 +341,10 @@ float Gyroscope::readSensor(bool apply_filter=false){
       uint32_t now = micros();
       float dt = (now - _prev_micros) / 1000000.0f;
       _prev_micros = now;
+      //if(fabs(gyroZ)>_deadband){
       _rad += gyroZ * dt;
+
+      //}
       
       _prev_measurements->push(gyroZ);
       return (apply_filter)? _prev_measurements->average():gyroZ;

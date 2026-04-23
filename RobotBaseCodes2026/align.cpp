@@ -62,6 +62,6 @@ void Align::poll() {
       tiller_->_gyro->resetAngle(); // Dead reckon complete
       
       // IMPORTANT: Change this to whatever state you want to enter next
-      tiller_->switchState(State::STRAFE); 
+      tiller_->switchState(State::TILL,{tiller_->get_y_tgt(),true,false}); 
   }
 }

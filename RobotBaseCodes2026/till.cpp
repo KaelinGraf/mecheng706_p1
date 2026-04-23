@@ -51,7 +51,7 @@ void Till::begin(TillData data) {
   // tiller_->_ultrasonic->getAvg();
   endzone_count_ = 0;
 
-  _gyro_pid = new PID<float>(300.0, 25.0, 0.0, 0.0, true, -60.0, 60.0); 
+  _gyro_pid = new PID<float>(350.0, 30.0, 0.0, 0.0, true, -80.0, 80.0); 
   _y_pid = new PID<float>(6.0, 0.5, 0.0, 0.0, true, -100.0, 100.0);
 }
 
@@ -81,7 +81,7 @@ void Till::poll() {
   float heading = tiller_->_gyro->getAngle();
   last_y = current_y;
 
-  tiller_->_ultrasonic->readSensor();
+  //tiller_->_ultrasonic->readSensor();
   current_y = tiller_->_ultrasonic->getAvg();
 
   if (current_y < 0) current_y = _target_y; // fallback
@@ -122,7 +122,7 @@ void Till::poll() {
         tiller_->switchState(State::STOPPED);
       } 
       else if(_from_homing){
-        tiller_->switchState(State::TILL,{_target_y,true,false});
+        tiller_->switchState(State::ALIGN);
       }else{
         tiller_->switchState(State::STRAFE);
       }

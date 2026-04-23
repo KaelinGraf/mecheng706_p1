@@ -13,7 +13,7 @@ public:
 
     _angle_pid = new PID<float>(20.0, 1.7, 0.0, 0.0, true, -100.0, 100.0);
     _x_pid = new PID<float>(4.0, 0.0, 0.0, 0.0, false, -100.0, 100.0);
-    _y_pid = new PID<float>(6.7, 0.7, 0.0, 0.0, true, -100.0, 100.0);
+    _y_pid = new PID<float>(7.5, 0.8, 0.0, 0.0, true, -100.0, 100.0);
   }
   ~Strafe()
   {
