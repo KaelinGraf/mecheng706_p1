@@ -3,7 +3,7 @@
 #include "tiller.h"
 
 void Turn::begin() {
-  tiller_->println("turning");
+  //---tiller_->println("turning");
   last_millis_ = millis();
   count_ = 0;
   _phase = 0;
@@ -16,7 +16,7 @@ void Turn::begin() {
 }
 
 void Turn::end() {
-  tiller_->println("stopped turning");
+  //---tiller_->println("stopped turning");
 }
 
 void Turn::poll() {

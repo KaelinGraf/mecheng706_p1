@@ -5,20 +5,20 @@
 
 
 void Till::begin(TillData data) {
-  tiller_->println("tilling");
+  //---tiller_->println("tilling");
 
   count_ = 0;
 
   _target_y = data.distance;
 
-  tiller_->print("y from wall: ");
-  tiller_->print(_target_y);
-  tiller_->println(" cm");
-  tiller_->print("drive foward? ");
-  tiller_->println(data.drive_foward ? "yes" : "no");
-  tiller_->print("From homing? ");
-  tiller_->println(data.from_homing?"yes":"no");
-  tiller_->print("turn count: "); tiller_->println(tiller_->getTurnCount());
+  //---tiller_->print("y from wall: ");
+  //---tiller_->print(_target_y);
+  //---tiller_->println(" cm");
+  //---tiller_->print("drive foward? ");
+  //---tiller_->println(data.drive_foward ? "yes" : "no");
+  //---tiller_->print("From homing? ");
+  //---tiller_->println(data.from_homing?"yes":"no");
+  //---tiller_->print("turn count: "); //---tiller_->println(tiller_->getTurnCount());
   if(data.from_homing){
     tiller_->_gyro->resetAngle();
 
@@ -52,14 +52,14 @@ void Till::begin(TillData data) {
 }
 
 void Till::end() {
-  tiller_->println("stopped tilling");
-  tiller_->print("Y before inc: ");
-  tiller_->println(tiller_->get_y_tgt());
+  //---tiller_->println("stopped tilling");
+  //---tiller_->print("Y before inc: ");
+  //---tiller_->println(tiller_->get_y_tgt());
   if(!_from_homing){
     tiller_->incTurnCount();
   }
-  tiller_->print("Y after inc: ");
-  tiller_->println(tiller_->get_y_tgt());
+  //---tiller_->print("Y after inc: ");
+  //---tiller_->println(tiller_->get_y_tgt());
 
   delete _gyro_pid;
   _gyro_pid = nullptr;
@@ -84,8 +84,8 @@ void Till::poll() {
 
   y_error = current_y - _target_y;
 
-  // tiller_->print("dist error: "); tiller_->println(y_error);
-  // tiller_->print("heading: ");    tiller_->println(heading);
+  // //---tiller_->print("dist error: "); //---tiller_->println(y_error);
+  // //---tiller_->print("heading: ");    //---tiller_->println(heading);
   angle_control_effort = _gyro_pid->update(heading);
   y_control_effort = -_y_pid->update(y_error); // move right (negative Vy) to increase distance to left wall
   // y_control_effort = 0;
@@ -116,7 +116,8 @@ void Till::poll() {
 
       if (tiller_->isLastRun()) {
         tiller_->switchState(State::STOPPED);
-      } else if(_from_homing){
+      } 
+      else if(_from_homing){
         tiller_->switchState(State::TILL,{_target_y,true,false});
       }else{
         tiller_->switchState(State::STRAFE);

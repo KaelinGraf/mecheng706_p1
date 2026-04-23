@@ -9,7 +9,7 @@
 // Field geometry & tilling configuration
 static constexpr float Y_WIDTH = 96.0;          // field width in cm
 static constexpr float Y_MARGIN = 6.0f;           // margin from walls in cm
-static constexpr int   NUM_SNAKES = 8;              // number of tilling passes
+static constexpr int   NUM_SNAKES = 10;              // number of tilling passes
 static constexpr float SENSOR_MAX_RANGE = 80.0f;    // long-range IR max in cm
 
 class Tiller {
@@ -34,6 +34,7 @@ public:
     Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSerial* SerialCom);
     ~Tiller();
     void testSensors();
+    void timeStepData();
     bool switchState(State::Name newState, TillData data = {-1.0, false,false});
     void pollState();
     inline void setSerialCom(HardwareSerial *serialCom) { serialCom_ = serialCom; };

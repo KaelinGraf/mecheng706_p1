@@ -103,7 +103,7 @@ void setupWireless() {
 }
 
 void Initialising::begin() {
-  tiller_->println("INITIALISING....");
+  //---tiller_->println("INITIALISING....");
   delay(1000);  // One second delay to see the serial string "INITIALISING...."
 
   // ultrasonic
@@ -123,7 +123,7 @@ void Initialising::begin() {
 }
 
 void Initialising::end() {
-  tiller_->println("Finished Initilising");
+  //---tiller_->println("Finished Initilising");
 }
 
 void Initialising::poll() {

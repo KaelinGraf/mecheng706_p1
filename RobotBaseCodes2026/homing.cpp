@@ -13,7 +13,7 @@ static const float US_SHORT_THRESHOLD_CM = 140.0f;  // threshold to classify sho
 
 
 void Homing::begin() {
-  tiller_->println("Homing: begin homing");
+  //---tiller_->println("Homing: begin homing");
   // Stop motors at start using the new driveMotors architecture
   tiller_->_motors->writeAllMotors(0, 0, 0); 
 
@@ -32,7 +32,7 @@ void Homing::begin() {
 }
 
 void Homing::end() {
-  tiller_->println("Homing: ended");
+  //---tiller_->println("Homing: ended");
 }
 
 void Homing::poll(){
@@ -46,8 +46,8 @@ void Homing::poll(){
     auto rotateCW = [&](int effort) { tiller_->_motors->writeAllMotors(0, 0, -effort); };
     auto rotateCCW = [&](int effort) { tiller_->_motors->writeAllMotors(0, 0, effort); };
     auto stopDrive = [&]() { tiller_->_motors->writeAllMotors(0, 0, 0); };
-    // tiller_->print("HS: ");
-    // tiller_->println(_hs);
+    // //---tiller_->print("HS: ");
+    // //---tiller_->println(_hs);
     switch (_hs) {
         case HC_DRIVE_TO_WALL:{
             // Drive in reverse with gyro heading correction to prevent arcing
@@ -58,9 +58,9 @@ void Homing::poll(){
             fl = tiller_->_rear_left_ir->readSensor();
             fr = tiller_->_rear_right_ir->readSensor();
 
-            tiller_->print("front left:  "); tiller_->println(fl);
-            tiller_->print("front right: "); tiller_->println(fr);
-            tiller_->println();
+            //---tiller_->print("front left:  "); //---tiller_->println(fl);
+            //---tiller_->print("front right: "); //---tiller_->println(fr);
+            //---tiller_->println();
                 
             // Either sensor detecting wall is sufficient to transition;
             // the align_perp stage will handle straightening out.
@@ -69,7 +69,7 @@ void Homing::poll(){
                 if (_exit_count >= 3) {
                     stopDrive();
                     _hs = HC_ALIGN_PERP;
-                    tiller_->println("Homing: wall detected by rear sensor");
+                    //---tiller_->println("Homing: wall detected by rear sensor");
                 }
             } else {
                 _exit_count = 0;
@@ -77,7 +77,7 @@ void Homing::poll(){
             return;
         }
         case HC_ALIGN_PERP:{
-            //tiller_->print("align perp");
+            ////---tiller_->print("align perp");
             // Aligning perpendicular to wall using front IR sensors
             // Takes difference of front left and right IRs to estimate angle, average for distance
             fl = tiller_->_rear_left_ir->readSensor();
@@ -100,9 +100,9 @@ void Homing::poll(){
                 float vtheta = _angle_pid->update(angle_err);
 
                 tiller_->_motors->writeAllMotors(-vx, 0, -vtheta);
-                // tiller_->println("applying efforts (vx vy vtheta)");
-                // tiller_->println(vx);
-                // tiller_->println(vtheta);
+                // //---tiller_->println("applying efforts (vx vy vtheta)");
+                // //---tiller_->println(vx);
+                // //---tiller_->println(vtheta);
 
             }
             // Transition when both distance and angle errors are within tolerance
@@ -113,10 +113,10 @@ void Homing::poll(){
                 tiller_->_gyro->resetAngle();  // Reset gyro so rotation PID starts from 0
                 if (_us_phase == 0){
                     _hs = HC_ROTATE_MOVE;
-                    tiller_->println("Homing: perpendicular and at target distance, rotating to check US");
+                    //---tiller_->println("Homing: perpendicular and at target distance, rotating to check US");
                 }
                 else if (_us_phase == 2){
-                    tiller_->println("Homing: perpendicular and at target distance after 2nd rotate, ready to strafe");
+                    //---tiller_->println("Homing: perpendicular and at target distance after 2nd rotate, ready to strafe");
                     _hs = HC_DONE;
                 }
             }
@@ -134,11 +134,11 @@ void Homing::poll(){
                 usval = (one > 0 && two > 0) ? (one + two)/2.0 : -1.0;
             }
             if (usval <= US_SHORT_THRESHOLD_CM){
-                tiller_->println("Homing: detected short side, till to wall");
+                //---tiller_->println("Homing: detected short side, till to wall");
                 _hs = HC_DONE; //this starts the transition to till
             }
             else if (usval > US_SHORT_THRESHOLD_CM){
-                tiller_->println("Homing: detected long side, rotating back and strafing to wall");
+                //---tiller_->println("Homing: detected long side, rotating back and strafing to wall");
                 _hs = HC_ROTATE_MOVE; //_us_phase equals 1 here so that it rotates the other direction in the rotate move stage
             }
 
@@ -161,7 +161,7 @@ void Homing::poll(){
             if(fabs(current_angle) == 0.0){
                 _gyro_error_count ++;
                 if (_gyro_error_count >= 15){
-                    tiller_->println("GYRO ERROR");
+                    //---tiller_->println("GYRO ERROR");
                     wdt_enable(WDTO_15MS);
                     while(1){
                         
@@ -177,14 +177,14 @@ void Homing::poll(){
                     _us_phase = 1; // rotate other direction next time
                     //transition to US to check side length
                     _hs = HC_CHECK_US;
-                    tiller_->println("Homing: rotation complete, checking ultrasonic");
+                    //---tiller_->println("Homing: rotation complete, checking ultrasonic");
 
                 }
                 else if (_us_phase == 1){
                     //if we had to rotate twice, this means we are on the long side and thus need to align then strafe
                     _us_phase = 2;
                     _hs = HC_ALIGN_PERP;
-                    tiller_->println("Homing: rotated back, re-aligning to begin strafing");
+                    //---tiller_->println("Homing: rotated back, re-aligning to begin strafing");
                 }
                 
             }
@@ -232,7 +232,7 @@ void Homing::poll(){
                 fabs(tiller_->get_y_tgt() - usval) <= ALIGN_TOLERANCE_CM) {
                 tiller_->_motors->writeAllMotors(0, 0, 0);
                 _hs = HC_DONE;
-                tiller_->println("Homing: 3DOF strafe reached target corner");
+                //---tiller_->println("Homing: 3DOF strafe reached target corner");
             }
             return;
         }
@@ -241,10 +241,10 @@ void Homing::poll(){
             stopDrive();
             if (_us_phase == 1){
                 //TO BE HERE, WE NEED TO "TILL" TILL WALL WITHOUT STRAFING
-                tiller_->println("Homing: tilling to wall");
+                //---tiller_->println("Homing: tilling to wall");
                 tiller_->switchState(State::TILL, {tiller_->get_y_tgt(), false, true});
             }else if (_us_phase == 2){
-                tiller_->println("Homing: aligned, strafing to wall");
+                //---tiller_->println("Homing: aligned, strafing to wall");
                 tiller_->switchState(State::STRAFE);
             }
 

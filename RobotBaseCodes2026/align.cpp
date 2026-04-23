@@ -4,7 +4,7 @@
 #include "tiller.h"
 
 void Align::begin() {
-  tiller_->println("Align: squaring up to wall with rear sensors");
+  //---tiller_->println("Align: squaring up to wall with rear sensors");
   
   _angle_pid->resetPID();
   _x_pid->resetPID();
@@ -22,7 +22,7 @@ void Align::begin() {
 }
 
 void Align::end() {
-  tiller_->println("Align: finished, gyro reset.");
+  //---tiller_->println("Align: finished, gyro reset.");
 }
 
 void Align::poll() {

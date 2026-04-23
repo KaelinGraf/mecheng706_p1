@@ -25,6 +25,7 @@ class Sensor{
     float readSensorFiltered(int nSamples, int delayMs = 0);
     virtual void setReadPin(uint8_t new_pin);
     virtual uint8_t getReadPin();
+    float mapping_reading_;
 
 };
 
@@ -35,6 +36,7 @@ class ShortRangeIR: public Sensor{
     float _min_voltage = 0.45;
     float _max_voltage = 2.9;
     RingBuffer<float,3>* _prev_measurements;
+    
 
   public:
     ShortRangeIR(uint8_t read_pin) : Sensor(read_pin){

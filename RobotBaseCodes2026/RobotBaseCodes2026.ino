@@ -94,15 +94,29 @@ void setup(void)
 
   delay(1000); // settling time but no really needed
   lastSensPrint = millis();
+
+  tiller->print("time");
+  tiller->print(",");
+  tiller->print("f_ir1");
+  tiller->print(",");
+  tiller->print("f_ir2");
+  tiller->print(",");
+  tiller->print("b_ir1");
+  tiller->print(",");
+  tiller->print("b_ir2");
+  tiller->print(",");
+  tiller->print("y_ult");
+  tiller->println(";");
 }
 
 void loop(void) // main loop
 {
   tiller->pollState();
-  // if (millis() - lastSensPrint > 100) {
-  //   tiller->testSensors();
-  //    lastSensPrint = millis();
-  //  }
+  if (millis() - lastSensPrint > 100) {
+    //  tiller->testSensors();
+    tiller->timeStepData();
+    lastSensPrint = millis();
+   }
 }
 
 void printBluetooth()

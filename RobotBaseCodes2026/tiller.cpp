@@ -34,14 +34,14 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
   // Second half: increasing distance from far wall, stored as decreasing (use far sensor)
   float first = Y_MARGIN;
   float last  = Y_WIDTH - Y_MARGIN;
-  print("y targets: [");
+  // print("y targets: [");
   for (int i = 0; i < NUM_SNAKES; i++) {
     y_tgts_[i] = last - i * (last - first) / (NUM_SNAKES - 1);
-    print(y_tgts_[i]);
+    // print(y_tgts_[i]);
     if (i != NUM_SNAKES-1) print(", ");
   }
-  println("]");
-  println();
+  // println("]");
+  // println();
 
   turn_count_ = 0;
   home_wall_sensor_ = -1;
@@ -82,9 +82,9 @@ bool Tiller::switchState(State::Name newState, TillData data = {-1.0, false, fal
     if (!is_battery_voltage_OK()) {
       // TODO enter fault
       current_state_ = states_[State::INITIALISING];
-      this->println();
-      this->println("ERROR: BATTERY NOT OK");
-      this->println();
+      // this->println();
+      // this->println("ERROR: BATTERY NOT OK");
+      // this->println();
       return false;
     }
 
@@ -104,7 +104,7 @@ bool Tiller::switchState(State::Name newState, TillData data = {-1.0, false, fal
       }
     }
 
-    this->print("unknown state");
+    // this->print("unknown state");
     return false;
 }
 
@@ -144,6 +144,32 @@ void Tiller::testSensors(){
   println();
 }
 
+void Tiller::timeStepData(){
+  print(millis());
+  print(",");
+
+  float flef = _front_left_ir->mapping_reading_;
+  print(flef);
+  print(",");
+
+  float frig = _front_right_ir->mapping_reading_;
+  print(frig);
+  print(",");
+
+  float lef = _rear_left_ir->mapping_reading_;
+  print(lef);
+  print(",");
+  
+  float rig = _rear_right_ir->mapping_reading_;
+  print(rig);
+  print(",");
+
+  print(_ultrasonic->mapping_reading_);
+  println(";");
+
+
+}
+
 bool Tiller::is_battery_voltage_OK() {
   static byte Low_voltage_counter;
   static unsigned long previous_millis;
@@ -162,24 +188,24 @@ bool Tiller::is_battery_voltage_OK() {
 
   if (Lipo_level_cal > 0 && Lipo_level_cal < 160) {
     previous_millis = millis();
-    this->print("Lipo level:");
-    this->print(Lipo_level_cal);
-    this->print("%");
-    this->println("");
+    // this->print("Lipo level:");
+    // this->print(Lipo_level_cal);
+    // this->print("%");
+    // this->println("");
     Low_voltage_counter = 0;
     return true;
   } else {
-    if (Lipo_level_cal < 0)
-      this->println(
-          "Lipo is Disconnected or Power Switch is turned OFF!!!");
-    else if (Lipo_level_cal > 160)
-      this->println("!Lipo is Overchanged!!!");
+    if (Lipo_level_cal < 0) {}
+      // this->println(
+      //     "Lipo is Disconnected or Power Switch is turned OFF!!!");
+    else if (Lipo_level_cal > 160) {}
+      // this->println("!Lipo is Overchanged!!!");
     else {
-      this->println(
-          "Lipo voltage too LOW, any lower and the lipo with be damaged");
-      this->print("Please Re-charge Lipo:");
-      this->print(Lipo_level_cal);
-      this->println("%");
+      // this->println(
+      //     "Lipo voltage too LOW, any lower and the lipo with be damaged");
+      // this->print("Please Re-charge Lipo:");
+      // this->print(Lipo_level_cal);
+      // this->println("%");
     }
 
     Low_voltage_counter++;

@@ -51,14 +51,23 @@ float Sensor::readSensorFiltered(int nSamples, int delayMs) {
     }
   }
 
-  if (valid == 0) return -1.0;
-  if (valid == 1) return samples[0];
+  if (valid == 0) {
+    mapping_reading_ = -1.0;
+    return -1.0;
+  }
+  if (valid == 1) {
+    mapping_reading_ = samples[0];
+    return samples[0];
+  }
 
   // Return the median (robust against outliers and ghost echoes)
   if (valid % 2 == 1) {
+    mapping_reading_ = samples[valid / 2];
     return samples[valid / 2];
   } else {
-    return (samples[valid / 2 - 1] + samples[valid / 2]) / 2.0;
+    float read = (samples[valid / 2 - 1] + samples[valid / 2]) / 2.0;
+    mapping_reading_ = read;
+    return read;
   }
 }
 
@@ -72,6 +81,7 @@ float ShortRangeIR::readSensor(){
   // if(new_reading != -1.0){
   //   _prev_measurements->push(new_reading);
   // }
+  mapping_reading_ = new_reading;
   return new_reading;
 }
 
@@ -80,7 +90,10 @@ float ShortRangeIR::getAvg(){
   if (val != -1.0){
     _prev_measurements->push(val);
   }
-  return _prev_measurements->median(); 
+
+  float median = _prev_measurements->median();
+  mapping_reading_ = median;
+  return median; 
 }
 
 float ShortRangeIR::applyCalibration(float adc_voltage){
@@ -113,6 +126,7 @@ float LongRangeIR::readSensor(){
   //   _prev_measurements->push(new_reading);
   // }
   
+  mapping_reading_ = new_reading;
   return new_reading;
 }
 float LongRangeIR::getAvg(){
@@ -120,7 +134,10 @@ float LongRangeIR::getAvg(){
   if (val != -1.0){
     _prev_measurements->push(val);
   }
-  return _prev_measurements->median(); 
+
+  float median = _prev_measurements->median(); 
+  mapping_reading_ = median;
+  return median; 
 }
 
 
@@ -226,11 +243,14 @@ float Ultrasonic::readSensor() {
   }
   runUltrasonic();
   if (cm <10.0 || cm > 200.0){
+    mapping_reading_ = -1.0;
     return -1.0;
   }
   // if(cm != -1.0){
   //   _prev_measurements->push(cm);
   // }
+
+  mapping_reading_ = cm;
   return cm;
 };
 
@@ -255,6 +275,8 @@ float Ultrasonic::readBlocking() {
       if (DIAGNOSTICS){
         Serial.println("HC-SR04: NOT found");
       }
+
+      mapping_reading_ = -1.0;
       return -2.0;
     }
   }
@@ -270,6 +292,7 @@ float Ultrasonic::readBlocking() {
       if (DIAGNOSTICS){
         Serial.println("HC-SR04: Out of range");
       }
+      mapping_reading_ = -1.0;
       return -1.0;
     }
   }
@@ -288,6 +311,8 @@ float Ultrasonic::readBlocking() {
       Serial.println("HC-SR04: Out of range");
     }
   }
+
+  mapping_reading_ = cm;
   return cm;
 }
 
@@ -296,7 +321,10 @@ float Ultrasonic::getAvg(){
   if (val != -1.0 && val <= 250.0){
     _prev_measurements->push(val);
   }
-  return _prev_measurements->median(); 
+
+  float median = _prev_measurements->median(); 
+  mapping_reading_ = median;
+  return mapping_reading_; 
 }
   
 
