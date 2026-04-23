@@ -7,9 +7,9 @@
 #include "pid.h"
 
 // Field geometry & tilling configuration
-static constexpr float Y_WIDTH = 105.7;          // field width in cm
-static constexpr float Y_MARGIN = 15.0f;           // margin from walls in cm
-static constexpr int   NUM_SNAKES = 6;              // number of tilling passes
+static constexpr float Y_WIDTH = 105.0;          // field width in cm
+static constexpr float Y_MARGIN = 5.0f;           // margin from walls in cm
+static constexpr int   NUM_SNAKES = 8;              // number of tilling passes
 static constexpr float SENSOR_MAX_RANGE = 80.0f;    // long-range IR max in cm
 
 class Tiller {

@@ -33,9 +33,14 @@ Tiller::Tiller(Adafruit_BNO08x* bno08x,sh2_SensorValue_t* sensorValue,HardwareSe
   // Second half: increasing distance from far wall, stored as decreasing (use far sensor)
   float first = Y_MARGIN;
   float last  = Y_WIDTH - Y_MARGIN;
+  print("y targets: [");
   for (int i = 0; i < NUM_SNAKES; i++) {
     y_tgts_[i] = last - i * (last - first) / (NUM_SNAKES - 1);
+    print(y_tgts_[i]);
+    if (i != NUM_SNAKES-1) print(", ");
   }
+  println("]");
+  println();
 
   turn_count_ = 0;
   home_wall_sensor_ = -1;

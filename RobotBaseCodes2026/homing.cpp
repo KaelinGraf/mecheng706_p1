@@ -9,7 +9,7 @@
 static const float TARGET_DISTANCE_CM = 5.0f; // desired distance from wall (Long Range IR blind spot is 10cm, must be >10)
 static const float ALIGN_TOLERANCE_CM = 2.0f;   // front sensors equal within this
 static const float FRONT_DETECT_CM = 20.0f;     // initial detection threshold
-static const float US_SHORT_THRESHOLD_CM = 110.0f;  // threshold to classify short side
+static const float US_SHORT_THRESHOLD_CM = 140.0f;  // threshold to classify short side
 
 
 void Homing::begin() {
