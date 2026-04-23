@@ -93,6 +93,7 @@ class Ultrasonic: public Sensor{
 
     float readSensor() override;
     inline float applyCalibration(float adc_voltage) override {return adc_voltage;};
+    float readBlocking();
     void initUltrasonic();
     void runUltrasonic();
     void setSentTime(unsigned long t1){sent_time = t1;};

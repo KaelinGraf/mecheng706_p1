@@ -109,13 +109,15 @@ void Tiller::pollState() {
 };
 
 void Tiller::testSensors(){
-  print("gyro: rad, itegral");
-  println(_gyro->readSensor());
-  println(_gyro->getAngle());
-  println();
+  // print("gyro: rad, itegral");
+  // println(_gyro->readSensor());
+  // println(_gyro->getAngle());
+  // println();
 
-  // print("ultrasonic");
+  // print("us raw: ");
   // println(_ultrasonic->readSensor());
+  print("us med: "); println(_ultrasonic->getAvg());
+  
   print("front left:");
   float flef = _front_left_ir->readSensor();
   println(flef);

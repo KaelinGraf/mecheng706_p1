@@ -1,3 +1,4 @@
+#include "HardwareSerial.h"
 #include "Arduino.h"
 #include"sensors.h"
 float readVoltage(uint8_t pin){
@@ -79,7 +80,7 @@ float ShortRangeIR::getAvg(){
   if (val != -1.0){
     _prev_measurements->push(val);
   }
-  return _prev_measurements->average(); 
+  return _prev_measurements->median(); 
 }
 
 float ShortRangeIR::applyCalibration(float adc_voltage){
@@ -119,7 +120,7 @@ float LongRangeIR::getAvg(){
   if (val != -1.0){
     _prev_measurements->push(val);
   }
-  return _prev_measurements->average(); 
+  return _prev_measurements->median(); 
 }
 
 
@@ -232,12 +233,70 @@ float Ultrasonic::readSensor() {
   // }
   return cm;
 };
+
+float Ultrasonic::readBlocking() {
+  unsigned long t1;
+  unsigned long t2;
+  unsigned long pulse_width;
+  float cm;
+  float inches;
+
+  // Hold the trigger pin high for at least 10 us
+  digitalWrite(_trigger_pin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(_trigger_pin, LOW);
+
+  // Wait for pulse on echo pin
+  t1 = micros();
+  while (digitalRead(2) == 0) {
+    t2 = micros();
+    pulse_width = t2 - t1;
+    if (pulse_width > (_max_dist + 1000)) {
+      if (DIAGNOSTICS){
+        Serial.println("HC-SR04: NOT found");
+      }
+      return -2.0;
+    }
+  }
+
+  // Measure how long the echo pin was held high (pulse width)
+  // Note: the micros() counter will overflow after ~70 min
+
+  t1 = micros();
+  while (digitalRead(2) == 1) {
+    t2 = micros();
+    pulse_width = t2 - t1;
+    if (pulse_width > (_max_dist + 1000)) {
+      if (DIAGNOSTICS){
+        Serial.println("HC-SR04: Out of range");
+      }
+      return -1.0;
+    }
+  }
+
+  pulse_width = t2 - t1;
+
+  // Calculate distance in centimeters and inches. The constants
+  // are found in the datasheet, and calculated from the assumed speed
+  //of sound in air at sea level (~340 m/s).
+  cm = pulse_width / 58.0;
+  inches = pulse_width / 148.0;
+
+  // Print out results
+  if (DIAGNOSTICS){
+    if (pulse_width > _max_dist) {
+      Serial.println("HC-SR04: Out of range");
+    }
+  }
+  return cm;
+}
+
 float Ultrasonic::getAvg(){
   float val = this->readSensor();
   if (val != -1.0 && val <= 250.0){
     _prev_measurements->push(val);
   }
-  return _prev_measurements->average(); 
+  return _prev_measurements->median(); 
 }
   
 

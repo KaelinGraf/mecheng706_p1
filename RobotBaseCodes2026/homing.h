@@ -18,7 +18,7 @@ class Homing : public State {
     };
     Homing(Tiller* tiller) : State(State::HOMING, tiller),
       _angle_pid(nullptr), _x_pid(nullptr), _y_pid(nullptr), _rotate_pid(nullptr),
-      _rotate_target(-1.0), _us_phase(0),_hs() {}
+      _rotate_target(-1.0), _us_phase(0),_hs(), _exit_count(0) {}
     ~Homing() {
       if (_angle_pid) delete _angle_pid;
       if (_x_pid) delete _x_pid;
@@ -39,6 +39,7 @@ class Homing : public State {
     int _us_phase;     // 0 = rotating anticlockwise, 1 = rotating clockwise
     HomingStage _hs;
     int _gyro_error_count = 0;
+    int _exit_count;
 };
 
 

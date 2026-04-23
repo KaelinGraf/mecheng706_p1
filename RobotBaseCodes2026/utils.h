@@ -1,3 +1,4 @@
+#include "Print.h"
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -77,6 +78,36 @@ class RingBuffer {
             sum += _buffer[i];
         }
         return static_cast<float>(sum) / _count;
+    }
+
+    float median() const {
+        if (_count == 0) return -1.0f;
+
+        // 1. Copy data to a temporary array (so we don't mess up the RingBuffer)
+        T temp[N];
+        for (size_t i = 0; i < _count; i++) {
+            temp[i] = _buffer[(_head + i) % N];
+        }
+
+        // 2. Basic Bubble Sort (Standard C-style sorting)
+        for (size_t i = 0; i < _count - 1; i++) {
+            for (size_t j = 0; j < _count - i - 1; j++) {
+                if (temp[j] > temp[j + 1]) {
+                    T swap = temp[j];
+                    temp[j] = temp[j + 1];
+                    temp[j + 1] = swap;
+                }
+            }
+        }
+
+        // 3. Calculate Median
+        if (_count % 2 == 0) {
+            // Even: Average of the two middle elements
+            return (float)(temp[(_count / 2) - 1] + temp[_count / 2]) / 2.0f;
+        } else {
+            // Odd: The middle element
+            return (float)temp[_count / 2];
+        }
     }
 
     void reset(){

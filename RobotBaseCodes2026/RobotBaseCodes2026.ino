@@ -99,9 +99,8 @@ void setup(void)
 void loop(void) // main loop
 {
   tiller->pollState();
-  // tiller->_motors->writeAllMotors(100,100,100);
-  //if (millis() - lastSensPrint > 100) {
-  //tiller->testSensors();
+  // if (millis() - lastSensPrint > 100) {
+  //   tiller->testSensors();
   //    lastSensPrint = millis();
   //  }
 }

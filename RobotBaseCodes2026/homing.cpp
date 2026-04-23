@@ -57,14 +57,22 @@ void Homing::poll(){
             
             fl = tiller_->_rear_left_ir->readSensor();
             fr = tiller_->_rear_right_ir->readSensor();
+
+            tiller_->print("front left:  "); tiller_->println(fl);
+            tiller_->print("front right: "); tiller_->println(fr);
+            tiller_->println();
                 
             // Either sensor detecting wall is sufficient to transition;
             // the align_perp stage will handle straightening out.
-            if ((fl > 0 && fl < FRONT_DETECT_CM) || (fr > 0 && fr < FRONT_DETECT_CM)) {
-                stopDrive();
-                _hs = HC_ALIGN_PERP;
-                tiller_->println("Homing: wall detected by rear sensor");
-                return;
+            if ((fl > 0 && fl < FRONT_DETECT_CM) && (fr > 0 && fr < FRONT_DETECT_CM)) {
+                _exit_count++;
+                if (_exit_count >= 3) {
+                    stopDrive();
+                    _hs = HC_ALIGN_PERP;
+                    tiller_->println("Homing: wall detected by rear sensor");
+                }
+            } else {
+                _exit_count = 0;
             }
             return;
         }
@@ -116,11 +124,14 @@ void Homing::poll(){
         }
         case HC_CHECK_US:{
             // Checks ultrasonic to classify side length, transitions to either till or strafe depending on result
-            tiller_->_ultrasonic->runUltrasonic();
+            //tiller_->_ultrasonic->runUltrasonic(); now block
             usval = -1.0;
             while (usval < 50.0 || usval >= 300.0){
                 //read tll valid reading (must be between 50 and 300 cm, otherwise likely a spurious reading)
-                usval = tiller_->_ultrasonic->readSensor();
+                float one = tiller_->_ultrasonic->readBlocking();
+                float two = tiller_->_ultrasonic->readBlocking();
+
+                usval = (one + two)/2.0;
             }
             if (usval <= US_SHORT_THRESHOLD_CM){
                 tiller_->println("Homing: detected short side, till to wall");
@@ -148,15 +159,16 @@ void Homing::poll(){
             float vtheta = _rotate_pid->update(error);
             tiller_->_motors->writeAllMotors(0, 0, -vtheta);
             if(fabs(current_angle) == 0.0){
-                tiller_->println("GYRO ERROR");
                 _gyro_error_count ++;
                 if (_gyro_error_count >= 15){
+                    tiller_->println("GYRO ERROR");
                     wdt_enable(WDTO_15MS);
                     while(1){
                         
                     }
-                }
-                
+                }    
+            }else{
+                _gyro_error_count =0;
             }
             if(fabs(error) < 0.05 && fabs(current_angle)!= 0.0) {
                 tiller_->_motors->writeAllMotors(0, 0, 0);
@@ -205,7 +217,7 @@ void Homing::poll(){
             usval = -1.0;
             while (usval < 0.0 || usval >= 300.0){
                 //ensure sensible reading is read from ultrasonic (between 0 and 300 cm, otherwise likely a spurious reading)
-                usval = tiller_->_ultrasonic->readSensor();
+                usval = tiller_->_ultrasonic->readBlocking();
             }
             if (usval > 0.0 && usval < 300.0){
                 vy = _y_pid->update(tiller_->get_y_tgt() - usval);
