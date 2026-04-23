@@ -142,13 +142,9 @@ void Homing::poll(){
                 tiller_->_gyro->resetAngle();
                 _rotate_pid->resetPID();
             }
-            tiller_->print("Rotate target: ");
-            tiller_->print(_rotate_target);
             float current_angle = tiller_->_gyro->getAngle();
             float error = _rotate_target - current_angle;
             float vtheta = _rotate_pid->update(error);
-            tiller_->print("rotate error: ");
-            tiller_->println(current_angle);
             tiller_->_motors->writeAllMotors(0, 0, -vtheta);
             if(fabs(error) == 0.0){
                 tiller_->println("GYRO ERROR");
@@ -159,11 +155,6 @@ void Homing::poll(){
                 
             }
             if(fabs(error) < 0.05 && fabs(error)!= 0.0) {
-                tiller_->println();
-                tiller_->println();
-                tiller_->println("HEREHEREHEREHERHHERHEHRHERHEHRHEHRHE");
-                tiller_->println();
-                tiller_->println();
                 tiller_->_motors->writeAllMotors(0, 0, 0);
                 _rotate_target = -1.0; // reset for next time
                 if (_us_phase == 0) {
@@ -215,10 +206,6 @@ void Homing::poll(){
             if (usval > 0.0 && usval < 300.0){
                 vy = _y_pid->update(tiller_->get_y_tgt() - usval);
             }
-            tiller_->println("strafe printouts");
-            tiller_->println(angle_err);
-            tiller_->println(-vx);
-            tiller_->println(usval);
 
 
             tiller_->_motors->writeAllMotors(-vx, vy, -vtheta);
@@ -226,7 +213,7 @@ void Homing::poll(){
             if (fl > 0.0 && fr > 0.0 &&
                 fabs(dist_avg - TARGET_DISTANCE_CM) <= ALIGN_TOLERANCE_CM &&
                 fabs(angle_err) < 1.5 &&
-                fabs(tiller_->get_y_tgt() - usval) >= ALIGN_TOLERANCE_CM) {
+                fabs(tiller_->get_y_tgt() - usval) <= ALIGN_TOLERANCE_CM) {
                 tiller_->_motors->writeAllMotors(0, 0, 0);
                 _hs = HC_DONE;
                 tiller_->println("Homing: 3DOF strafe reached target corner");

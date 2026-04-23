@@ -20,7 +20,7 @@ private:
     SoftwareSerial *btSerial_ = nullptr;
     float y_tgts_[NUM_SNAKES];          // computed in constructor
     unsigned int curr_y_idx_ = 0;
-    int turn_count_ = 1;                // tracks 180° turns for sensor parity
+    int turn_count_ = 0;                // tracks 180° turns for sensor parity
     int home_wall_sensor_ = -1;         // 0=left, 1=right, -1=not set
 
 public:

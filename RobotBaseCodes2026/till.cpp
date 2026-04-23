@@ -90,12 +90,12 @@ void Till::poll() {
   y_control_effort = -_y_pid->update(y_error); // move right (negative Vy) to increase distance to left wall
   // y_control_effort = 0;
 
-  tiller_->println("CONTROL EFFORTS: ");
-  tiller_->println(tilling_speed_);
-  tiller_->println(y_control_effort);
-  tiller_->println(angle_control_effort);
-  tiller_->println(y_error);
-  tiller_->println();
+  // tiller_->println("CONTROL EFFORTS: ");
+  // tiller_->println(tilling_speed_);
+  // tiller_->println(y_control_effort);
+  // tiller_->println(angle_control_effort);
+  // tiller_->println(y_error);
+  // tiller_->println();
   tiller_->_motors->writeAllMotors(tilling_speed_, y_control_effort, angle_control_effort);
 
   float left_dist;

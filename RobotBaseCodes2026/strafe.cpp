@@ -55,13 +55,15 @@ void Strafe::poll(){
   if(ultrasonic > 0 && dist_val_left > 0 && dist_val_right > 0){
     float angle = tiller_->_gyro->getAngle();
     float vtheta = _gyro_pid->update(angle);
-    float vy = _y_pid->update((_target_y - ultrasonic));
+    float vy = _y_pid->update((_target_y - ultrasonic));  // CHANGED flipped sign
     float vx = _x_pid->update(((dist_val_left + dist_val_right)/2.0)-wall_dist);
     if(tiller_->getTurnCount() % 2 !=1){
       vx *= -1.0;
     }
     tiller_->_motors->writeAllMotors(vx, vy, vtheta);
   }
+
+  tiller_->print("y err:  "); tiller_->println(_target_y - ultrasonic);
   
   if(
     (fabs((ultrasonic-_target_y)) <= 2.0) &&
@@ -71,7 +73,7 @@ void Strafe::poll(){
   }else{
     exit_count = 0;
   }
-  if(exit_count == 5){
+  if(exit_count >= 3){
     tiller_->println("STRAFE FINISH");
     tiller_->switchState(State::TILL, {_target_y,tiller_->getTurnCount() % 2 !=1, false});
   }
